@@ -9,11 +9,12 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -51,7 +52,14 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        // Milestone 1 will replace this with role-based access via spatie/laravel-permission
-        return app()->isLocal();
+        return $this->hasAnyRole([
+            'super_admin',
+            'admin',
+            'case_officer',
+            'senior_officer',
+            'document_verifier',
+            'finance_officer',
+            'support_staff',
+        ]);
     }
 }
