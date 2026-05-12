@@ -19,21 +19,21 @@ applicant registration → dynamic form → document upload → payment → offi
 
 ## Target Stack
 
-| Area | Choice |
-|---|---|
-| Framework | Laravel 12, PHP 8.3+ |
-| Admin UI | Filament 4 |
-| Database | PostgreSQL (JSONB for form schemas) |
-| Queue / cache | Redis + Laravel Horizon |
+| Area | Choice                                                                     |
+|---|----------------------------------------------------------------------------|
+| Framework | Laravel 12, PHP 8.3+                                                       |
+| Admin UI | Filament 4                                                                 |
+| Database | MySQL 8+ (JSON columns for form schemas)                                   |
+| Queue / cache | Redis + Laravel Horizon                                                    |
 | Auth | Laravel starter kit (applicant portal); Filament auth (back-office panels) |
-| RBAC | `spatie/laravel-permission` + Laravel Policies |
-| Audit | `spatie/activitylog` + custom `audit_logs` table |
-| PDF | Dompdf (MVP); Browsershot later for pixel-perfect output |
-| Payments | Stripe Checkout / PaymentIntents |
-| Storage | Private S3-compatible only — never public buckets |
-| Primary keys | ULIDs for all sensitive models |
-| AI tooling | Laravel Boost (install on day 0) |
-| Testing | Pest |
+| RBAC | `spatie/laravel-permission` + Laravel Policies                             |
+| Audit | `spatie/activitylog` + custom `audit_logs` table                           |
+| PDF | Dompdf (MVP); Browsershot later for pixel-perfect output                   |
+| Payments | Stripe Checkout / PaymentIntents                                           |
+| Storage | Private S3-compatible only — never public buckets                          |
+| Primary keys | ULIDs for all sensitive models                                             |
+| AI tooling | Laravel Boost (install on day 0)                                           |
+| Testing | Pest                                                                       |
 
 > **Note on Laravel version:** The original blueprint referenced Laravel 13. This project targets **Laravel 12**. Pin all dependencies accordingly. Do not mix Laravel 13 syntax. Add an upgrade note for later.
 
@@ -455,3 +455,9 @@ After coding:
 - Spatie Activitylog: https://spatie.be/docs/laravel-activitylog
 - Laravel Boost (AI agent tooling): https://laravel.com/docs/12.x/ai
 - Stripe PaymentIntents: https://stripe.com/docs/payments/payment-intents
+
+
+
+### History
+
+- **2026-05-12** — Initial Laravel 12 + Filament 4 project scaffolded. Git repository initialized and pushed to `https://github.com/genesis12tech/onlin-visa-system.git`. Milestone 0 foundation in place: Filament admin panel at `/admin`, PHPUnit test suite configured with SQLite in-memory, Pint code style configured, CLAUDE.md written with project commands and architecture notes.

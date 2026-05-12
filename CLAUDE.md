@@ -19,7 +19,6 @@ Read the following to get the full document of the project:
 -@docs/filament-resource-map.md
 -@docs/ai-agent-rules.md
 
-
 ## Features Files
 
 Read the following to get the full features of the project:

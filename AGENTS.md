@@ -425,3 +425,45 @@ livewire(ListUsers::class)
   - `$view`: `protected string` (not `protected static string`) on `Page` and `Widget` classes
 
 </laravel-boost-guidelines>
+
+# Visa Application System — Project Rules
+
+You are working on a **Laravel 12 + Filament 4 visa application system** with MySQL 8+, Redis, and Laravel Horizon.
+
+## Rules
+
+1. Use the existing domain structure under `app/Domain/`. Never put business logic in controllers or Filament resources.
+2. Every sensitive model must have a Policy. No exceptions.
+3. Every custom Filament action must call `->authorize(...)` explicitly. Filament does not auto-authorize custom actions.
+4. Never store applicant documents on a public disk. Always use a private S3-compatible disk. Generate signed, time-limited URLs for previews.
+5. Never expose raw numeric IDs in public-facing routes. Use ULIDs or opaque tracking tokens.
+6. Use ULIDs for all sensitive primary keys. Lookup tables (countries) may use integer IDs.
+7. Wrap all workflow state transitions in database transactions. Status changes, payment success, and decisions must be atomic.
+8. Write or update tests with every feature. Run `php artisan test --compact` before declaring a task done.
+9. Do not create unrelated refactors in the same task.
+10. Do not invent package APIs — use `search-docs` via Laravel Boost to verify API signatures for the installed versions.
+11. Run `vendor/bin/pint --dirty --format agent` after any PHP file changes.
+12. Decision letters are generated from the immutable submitted snapshot, not from live application data.
+13. Webhook handlers must be idempotent. Duplicate events must not create duplicate records.
+
+## Queue Names
+
+Always dispatch to a named queue — never the default unless explicitly appropriate:
+
+| Queue | Purpose |
+|---|---|
+| `high` | Time-sensitive workflow transitions |
+| `default` | General jobs |
+| `emails` | Notification emails |
+| `documents` | Document processing and scan results |
+| `pdfs` | PDF generation (receipt, decision letter) |
+| `reports` | Export and reporting jobs |
+
+## Key References
+
+- Domain structure: `app/Domain/{Identity,Applications,Documents,Payments,Reporting}/`
+- Feature specs: `features/`
+- Security rules: `docs/security-rules.md`
+- DB model: `docs/database-model.md`
+- Workflows: `docs/workflows-and-statuses.md`
+- AI agent rules: `docs/ai-agent-rules.md`
