@@ -24,7 +24,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('status');
-            $table->unique(['visa_application_id', 'document_type_id']);
+            $table->unique(['visa_application_id', 'document_type_id'], 'appldocs_application_doctype_unique');
         });
     }
 

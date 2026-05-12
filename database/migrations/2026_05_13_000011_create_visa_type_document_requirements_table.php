@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('notes')->nullable(); // shown to applicant
             $table->timestamps();
 
-            $table->unique(['visa_type_id', 'document_type_id']);
+            $table->unique(['visa_type_id', 'document_type_id'], 'vtdr_visa_type_document_unique');
         });
     }
 
