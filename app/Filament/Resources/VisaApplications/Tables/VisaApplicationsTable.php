@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\VisaApplications\Tables;
 
+use App\Models\VisaApplication;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -44,14 +45,7 @@ class VisaApplicationsTable
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'Submitted' => 'info',
-                        'Under review' => 'warning',
-                        'Approved' => 'success',
-                        'Docs required' => 'primary',
-                        'Rejected' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->color(fn (string $state): string => VisaApplication::statusColor($state)),
 
                 TextColumn::make('assigned_to')
                     ->label('Assigned To'),
@@ -60,8 +54,9 @@ class VisaApplicationsTable
                 SelectFilter::make('status')
                     ->options([
                         'Submitted' => 'Submitted',
-                        'Under review' => 'In review',
+                        'Under review' => 'Under review',
                         'Approved' => 'Approved',
+                        'Docs required' => 'Docs required',
                         'Rejected' => 'Rejected',
                     ]),
             ])

@@ -6,6 +6,8 @@ use Filament\Widgets\ChartWidget;
 
 class ByVisaTypeWidget extends ChartWidget
 {
+    protected string $view = 'filament.widgets.by-visa-type-widget';
+
     protected static ?int $sort = 3;
 
     protected ?string $heading = 'By visa type';

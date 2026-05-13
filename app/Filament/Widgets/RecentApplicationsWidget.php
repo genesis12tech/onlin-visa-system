@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\VisaApplication;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -11,7 +12,7 @@ class RecentApplicationsWidget extends BaseTableWidget
 {
     protected static ?int $sort = 4;
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     protected static ?string $heading = 'Recent applications';
 
@@ -38,14 +39,7 @@ class RecentApplicationsWidget extends BaseTableWidget
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'Submitted'     => 'info',
-                        'Under review'  => 'warning',
-                        'Approved'      => 'success',
-                        'Docs required' => 'primary',
-                        'Rejected'      => 'danger',
-                        default         => 'gray',
-                    }),
+                    ->color(fn (string $state): string => VisaApplication::statusColor($state)),
             ])
             ->headerActions([
                 Action::make('viewAll')
