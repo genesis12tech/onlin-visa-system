@@ -79,6 +79,8 @@ class VisaApplicationsTable
                     ->color('danger')
                     ->action(fn () => null),
             ])
+            ->recordUrl(null)
+            ->recordAction(null)
             ->toolbarActions([])
             ->searchPlaceholder('Search reference, name…')
             ->paginated([10, 25, 50]);
