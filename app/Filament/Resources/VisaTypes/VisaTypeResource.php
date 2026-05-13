@@ -22,9 +22,11 @@ class VisaTypeResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuration';
+    protected static string|UnitEnum|null $navigationGroup = 'SETTINGS';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationLabel = 'Visa Types';
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'name';
 
