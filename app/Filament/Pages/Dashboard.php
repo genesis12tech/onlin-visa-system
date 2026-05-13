@@ -7,6 +7,7 @@ use App\Filament\Widgets\ByVisaTypeWidget;
 use App\Filament\Widgets\RecentApplicationsWidget;
 use App\Filament\Widgets\StatsOverviewWidget;
 use Filament\Pages\Dashboard as BaseDashboard;
+use UnitEnum;
 
 class Dashboard extends BaseDashboard
 {
@@ -14,7 +15,7 @@ class Dashboard extends BaseDashboard
 
     protected static ?string $navigationLabel = 'Dashboard';
 
-    protected static ?string $navigationGroup = 'MAIN';
+    protected static string|UnitEnum|null $navigationGroup = 'MAIN';
 
     protected static ?int $navigationSort = 1;
 
