@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Support\MockDataService;
 use Filament\Widgets\ChartWidget;
 
 class ApplicationsOverTimeWidget extends ChartWidget
@@ -16,12 +17,14 @@ class ApplicationsOverTimeWidget extends ChartWidget
 
     protected function getData(): array
     {
+        $rows = MockDataService::overTime();
+
         return [
-            'labels' => ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            'labels' => array_column($rows, 'month'),
             'datasets' => [
                 [
                     'label' => 'Applications',
-                    'data' => [98, 145, 112, 189, 204, 312],
+                    'data' => array_column($rows, 'count'),
                     'backgroundColor' => 'rgba(99, 102, 241, 0.8)',
                     'borderColor' => 'rgba(99, 102, 241, 1)',
                     'borderWidth' => 1,

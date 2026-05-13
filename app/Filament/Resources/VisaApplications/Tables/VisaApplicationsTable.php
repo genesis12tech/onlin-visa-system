@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\VisaApplications\Tables;
 
 use App\Models\VisaApplication;
+use App\Support\MockDataService;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class VisaApplicationsTable
@@ -13,24 +13,32 @@ class VisaApplicationsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->records(fn () => [
-                ['reference' => 'VA-2024-A1F3K2', 'applicant' => 'Arjun Mehta',     'visa_type' => 'Tourist',  'nationality' => 'Indian',     'travel_date' => 'Jan 14, 2025', 'status' => 'Submitted',     'assigned_to' => 'Unassigned'],
-                ['reference' => 'VA-2024-B2G4L3', 'applicant' => 'Sofia Chen',      'visa_type' => 'Student',  'nationality' => 'Chinese',    'travel_date' => 'Feb 1, 2025',  'status' => 'Under review',  'assigned_to' => 'Priya Mehta'],
-                ['reference' => 'VA-2024-C3H5M4', 'applicant' => 'James Okonkwo',   'visa_type' => 'Work',     'nationality' => 'Nigerian',   'travel_date' => 'Jan 20, 2025', 'status' => 'Approved',      'assigned_to' => 'Rahul Sharma'],
-                ['reference' => 'VA-2024-D4I6N5', 'applicant' => 'Maria Santos',    'visa_type' => 'Tourist',  'nationality' => 'Brazilian',  'travel_date' => 'Mar 5, 2025',  'status' => 'Docs required', 'assigned_to' => 'Anita Desai'],
-                ['reference' => 'VA-2024-E5J7O6', 'applicant' => 'Ahmed Al-Rashid', 'visa_type' => 'Business', 'nationality' => 'Saudi',      'travel_date' => 'Jan 30, 2025', 'status' => 'Under review',  'assigned_to' => 'Mohammed Khan'],
-                ['reference' => 'VA-2024-F6K8P7', 'applicant' => 'Priya Nair',      'visa_type' => 'Student',  'nationality' => 'Indian',     'travel_date' => 'Feb 15, 2025', 'status' => 'Submitted',     'assigned_to' => 'Unassigned'],
-                ['reference' => 'VA-2024-G7L9Q8', 'applicant' => 'Lucas Müller',    'visa_type' => 'Tourist',  'nationality' => 'German',     'travel_date' => 'Dec 28, 2024', 'status' => 'Approved',      'assigned_to' => 'Priya Mehta'],
-                ['reference' => 'VA-2024-H8M0R9', 'applicant' => 'Yuki Tanaka',     'visa_type' => 'Medical',  'nationality' => 'Japanese',   'travel_date' => 'Jan 10, 2025', 'status' => 'Rejected',      'assigned_to' => 'Rahul Sharma'],
-                ['reference' => 'VA-2024-I9N1S0', 'applicant' => 'Emma Wilson',     'visa_type' => 'Work',     'nationality' => 'Australian', 'travel_date' => 'Feb 5, 2025',  'status' => 'Submitted',     'assigned_to' => 'Unassigned'],
-                ['reference' => 'VA-2024-J0O2T1', 'applicant' => 'Ravi Krishnan',   'visa_type' => 'Business', 'nationality' => 'Indian',     'travel_date' => 'Jan 22, 2025', 'status' => 'Under review',  'assigned_to' => 'Anita Desai'],
-            ])
+            ->records(function () use ($table) {
+                $livewire = $table->getLivewire();
+                $data = MockDataService::applications();
+
+                $activeTab = $livewire->activeTab ?? 'all';
+                if ($activeTab && $activeTab !== 'all') {
+                    $data = array_values(array_filter($data, fn ($row) => $row['status'] === $activeTab));
+                }
+
+                $search = strtolower($livewire->tableSearch ?? '');
+                if ($search !== '') {
+                    $data = array_values(array_filter(
+                        $data,
+                        fn ($row) => str_contains(strtolower($row['name']), $search)
+                            || str_contains(strtolower($row['reference']), $search),
+                    ));
+                }
+
+                return $data;
+            })
             ->columns([
                 TextColumn::make('reference')
                     ->label('Reference')
                     ->color('info'),
 
-                TextColumn::make('applicant')
+                TextColumn::make('name')
                     ->label('Applicant'),
 
                 TextColumn::make('visa_type')
@@ -40,25 +48,18 @@ class VisaApplicationsTable
                     ->label('Nationality'),
 
                 TextColumn::make('travel_date')
-                    ->label('Travel Date'),
+                    ->label('Travel Date')
+                    ->state(fn (array $record): string => date('M j, Y', strtotime($record['travel_date']))),
 
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
+                    ->state(fn (array $record): string => VisaApplication::statusLabel($record['status']))
                     ->color(fn (string $state): string => VisaApplication::statusColor($state)),
 
                 TextColumn::make('assigned_to')
-                    ->label('Assigned To'),
-            ])
-            ->filters([
-                SelectFilter::make('status')
-                    ->options([
-                        'Submitted' => 'Submitted',
-                        'Under review' => 'Under review',
-                        'Approved' => 'Approved',
-                        'Docs required' => 'Docs required',
-                        'Rejected' => 'Rejected',
-                    ]),
+                    ->label('Assigned To')
+                    ->state(fn (array $record): string => $record['assigned_to'] ?? 'Unassigned'),
             ])
             ->recordActions([
                 Action::make('view')

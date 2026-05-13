@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\VisaApplication;
+use App\Support\MockDataService;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -19,26 +20,22 @@ class RecentApplicationsWidget extends BaseTableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->records(fn () => [
-                ['reference' => 'VA-2024-A1F3K2', 'applicant' => 'Arjun Mehta',     'visa_type' => 'Tourist',  'submitted' => 'Jan 14, 2025', 'status' => 'Submitted'],
-                ['reference' => 'VA-2024-B2G4L3', 'applicant' => 'Sofia Chen',      'visa_type' => 'Student',  'submitted' => 'Feb 1, 2025',  'status' => 'Under review'],
-                ['reference' => 'VA-2024-C3H5M4', 'applicant' => 'James Okonkwo',   'visa_type' => 'Work',     'submitted' => 'Jan 20, 2025', 'status' => 'Approved'],
-                ['reference' => 'VA-2024-D4I6N5', 'applicant' => 'Maria Santos',    'visa_type' => 'Tourist',  'submitted' => 'Mar 5, 2025',  'status' => 'Docs required'],
-                ['reference' => 'VA-2024-E5J7O6', 'applicant' => 'Ahmed Al-Rashid', 'visa_type' => 'Business', 'submitted' => 'Jan 30, 2025', 'status' => 'Under review'],
-            ])
+            ->records(fn () => MockDataService::recentApplications(5))
             ->columns([
                 TextColumn::make('reference')
                     ->label('Reference')
                     ->color('info'),
-                TextColumn::make('applicant')
+                TextColumn::make('name')
                     ->label('Applicant'),
                 TextColumn::make('visa_type')
                     ->label('Visa Type'),
-                TextColumn::make('submitted')
-                    ->label('Submitted'),
+                TextColumn::make('travel_date')
+                    ->label('Travel Date')
+                    ->state(fn (array $record): string => date('M j, Y', strtotime($record['travel_date']))),
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
+                    ->state(fn (array $record): string => VisaApplication::statusLabel($record['status']))
                     ->color(fn (string $state): string => VisaApplication::statusColor($state)),
             ])
             ->headerActions([
