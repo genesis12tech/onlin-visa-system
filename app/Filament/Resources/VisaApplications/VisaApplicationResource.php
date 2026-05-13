@@ -13,12 +13,24 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class VisaApplicationResource extends Resource
 {
     protected static ?string $model = VisaApplication::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = 'MAIN';
+
+    protected static ?string $navigationLabel = 'Applications';
+
+    protected static ?int $navigationSort = 2;
+
+    public static function getNavigationBadge(): ?string
+    {
+        return '12';
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -32,9 +44,7 @@ class VisaApplicationResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
