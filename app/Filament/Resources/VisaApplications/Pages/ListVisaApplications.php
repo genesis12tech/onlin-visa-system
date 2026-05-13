@@ -4,7 +4,7 @@ namespace App\Filament\Resources\VisaApplications\Pages;
 
 use App\Filament\Resources\VisaApplications\VisaApplicationResource;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Pages\ListRecords\Tab;
+use Filament\Schemas\Components\Tabs\Tab;
 
 class ListVisaApplications extends ListRecords
 {
