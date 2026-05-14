@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             FormTemplateSeeder::class,   // depends on visa types
             RoleSeeder::class,           // roles must exist before users are assigned
             UserSeeder::class,           // staff + demo accounts with roles assigned
+            VisaApplicationSeeder::class, // sample applications + daily metrics
         ]);
     }
 }

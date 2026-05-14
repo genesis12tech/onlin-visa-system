@@ -2,17 +2,19 @@
 
 namespace App\Filament\Resources\VisaApplications;
 
+use App\Domain\Applications\Models\VisaApplication;
 use App\Filament\Resources\VisaApplications\Pages\CreateVisaApplication;
 use App\Filament\Resources\VisaApplications\Pages\EditVisaApplication;
 use App\Filament\Resources\VisaApplications\Pages\ListVisaApplications;
+use App\Filament\Resources\VisaApplications\Pages\ViewVisaApplication;
 use App\Filament\Resources\VisaApplications\Schemas\VisaApplicationForm;
 use App\Filament\Resources\VisaApplications\Tables\VisaApplicationsTable;
-use App\Models\VisaApplication;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class VisaApplicationResource extends Resource
@@ -29,7 +31,13 @@ class VisaApplicationResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return '12';
+        return (string) VisaApplication::count();
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['applicantProfile.nationality', 'visaType', 'officer']);
     }
 
     public static function form(Schema $schema): Schema
@@ -51,6 +59,7 @@ class VisaApplicationResource extends Resource
     {
         return [
             'index' => ListVisaApplications::route('/'),
+            'view' => ViewVisaApplication::route('/{record}'),
             'create' => CreateVisaApplication::route('/create'),
             'edit' => EditVisaApplication::route('/{record}/edit'),
         ];

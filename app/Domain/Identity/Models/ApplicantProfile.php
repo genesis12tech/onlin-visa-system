@@ -56,4 +56,9 @@ class ApplicantProfile extends Model
     {
         return $this->belongsTo(Country::class, 'country_of_residence_id');
     }
+
+    public function getFullNameAttribute(): string
+    {
+        return trim("{$this->first_name} {$this->last_name}");
+    }
 }
