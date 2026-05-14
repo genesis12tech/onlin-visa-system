@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories\Domain\Documents\Models;
+namespace Database\Factories;
 
 use App\Domain\Documents\Models\DocumentType;
 use Illuminate\Database\Eloquent\Factories\Factory;
