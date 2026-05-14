@@ -2,6 +2,7 @@
 
 namespace App\Domain\Documents\Models;
 
+use Database\Factories\DocumentTypeFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,6 +11,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class DocumentType extends Model
 {
     use HasFactory, HasUlids;
+
+    protected static function newFactory(): DocumentTypeFactory
+    {
+        return DocumentTypeFactory::new();
+    }
 
     protected $primaryKey = 'ulid';
 
