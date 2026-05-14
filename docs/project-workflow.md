@@ -331,6 +331,34 @@ super_admin
 
 ---
 
+### Dashboard Phase 2 — Live Mock Data (No Database) **[In Progress]**
+
+**Overview:** Wire both Filament pages to a mock data file (`database/mock/visa_applications.php`) returning PHP arrays. All widgets and the table resource read from this single file via a `MockDataService`. No migrations, Eloquent models, or seeders required. Visual output is identical to Phase 1 but driven by imported data rather than hard-coded literals.
+
+**Files to create or modify:**
+- `database/mock/visa_applications.php` — structured PHP array with `stats`, `applications_over_time`, `by_visa_type`, and `applications` keys
+- `app/Support/MockDataService.php` — static loader/accessor with a per-request singleton cache
+- `app/Filament/Admin/Widgets/StatsOverviewWidget.php` — reads from `MockDataService::stats()`
+- `app/Filament/Admin/Widgets/ApplicationsOverTimeWidget.php` — reads from `MockDataService::overTime()`
+- `app/Filament/Admin/Widgets/ByVisaTypeWidget.php` — reads from `MockDataService::byVisaType()`
+- `app/Filament/Admin/Widgets/RecentApplicationsWidget.php` — reads from `MockDataService::recentApplications(5)`
+- `app/Filament/Admin/Resources/VisaApplicationResource.php` — reads from `MockDataService::applications()` via a `Collection::make()` override
+
+**Acceptance criteria:**
+- `database/mock/visa_applications.php` exists and returns a valid PHP array with all four top-level keys
+- `MockDataService::load()` is called at most once per request (static cache)
+- Dashboard stat cards read from `MockDataService::stats()` — changing a value in the mock file reflects on the page without code changes
+- Bar chart data comes from `MockDataService::overTime()` — all 6 months render correctly
+- Donut chart data comes from `MockDataService::byVisaType()` — 5 segments with correct colours
+- Recent applications table shows the first 5 rows from `MockDataService::recentApplications(5)`
+- Applications list shows all 10 rows from `MockDataService::applications()`
+- Status filter tabs filter the mock array correctly (Submitted → 3 rows, Approved → 2 rows, Rejected → 1 row)
+- Search on "Sofia" filters to one row (VA-2024-B2G4L3)
+- No `DB::` or Eloquent calls execute on any admin page — confirmed via `DB::enableQueryLog()` assertion in a feature test
+- `php artisan test` passes
+
+---
+
 ## MVP Definition of Done
 
 The MVP is complete when this full flow works safely end-to-end, with tests:
