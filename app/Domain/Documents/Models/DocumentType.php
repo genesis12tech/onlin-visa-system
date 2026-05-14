@@ -3,11 +3,12 @@
 namespace App\Domain\Documents\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class DocumentType extends Model
 {
-    use HasUlids;
+    use HasFactory, HasUlids;
 
     protected $primaryKey = 'ulid';
 
