@@ -2,8 +2,8 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\VisaApplication;
-use App\Support\MockDataService;
+use App\Domain\Applications\Enums\ApplicationStatus;
+use App\Domain\Applications\Models\VisaApplication;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -20,23 +20,32 @@ class RecentApplicationsWidget extends BaseTableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->records(fn () => MockDataService::recentApplications(5))
+            ->query(
+                VisaApplication::latest('submitted_at')
+                    ->with(['applicantProfile.nationality', 'visaType', 'officer'])
+                    ->limit(5),
+            )
             ->columns([
-                TextColumn::make('reference')
+                TextColumn::make('tracking_number')
                     ->label('Reference')
                     ->color('info'),
-                TextColumn::make('name')
-                    ->label('Applicant'),
-                TextColumn::make('visa_type')
+
+                TextColumn::make('applicant_name')
+                    ->label('Applicant')
+                    ->state(fn (VisaApplication $record): string => $record->applicantProfile?->full_name ?? '—'),
+
+                TextColumn::make('visaType.name')
                     ->label('Visa Type'),
+
                 TextColumn::make('travel_date')
                     ->label('Travel Date')
-                    ->state(fn (array $record): string => date('M j, Y', strtotime($record['travel_date']))),
+                    ->date('M j, Y'),
+
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->state(fn (array $record): string => VisaApplication::statusLabel($record['status']))
-                    ->color(fn (string $state): string => VisaApplication::statusColor($state)),
+                    ->formatStateUsing(fn (ApplicationStatus $state): string => $state->label())
+                    ->color(fn (ApplicationStatus $state): string => $state->color()),
             ])
             ->headerActions([
                 Action::make('viewAll')
