@@ -2,6 +2,7 @@
 
 namespace App\Domain\Applications\Models;
 
+use App\Domain\Documents\Models\VisaTypeDocumentRequirement;
 use App\Domain\Identity\Models\Country;
 use App\Domain\Payments\Models\VisaFee;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -48,5 +49,11 @@ class VisaType extends Model
     public function formTemplates(): HasMany
     {
         return $this->hasMany(FormTemplate::class, 'visa_type_id', 'ulid');
+    }
+
+    public function documentRequirements(): HasMany
+    {
+        return $this->hasMany(VisaTypeDocumentRequirement::class, 'visa_type_id', 'ulid')
+            ->orderBy('display_order');
     }
 }

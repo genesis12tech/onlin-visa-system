@@ -5,6 +5,7 @@ namespace App\Domain\Documents\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DocumentType extends Model
 {
@@ -29,5 +30,10 @@ class DocumentType extends Model
             'max_pages' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function requirements(): HasMany
+    {
+        return $this->hasMany(VisaTypeDocumentRequirement::class, 'document_type_id', 'ulid');
     }
 }

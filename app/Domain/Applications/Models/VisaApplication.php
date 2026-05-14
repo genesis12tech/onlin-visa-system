@@ -3,6 +3,7 @@
 namespace App\Domain\Applications\Models;
 
 use App\Domain\Applications\Enums\ApplicationStatus;
+use App\Domain\Documents\Models\ApplicationDocument;
 use App\Domain\Identity\Models\ApplicantProfile;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -77,5 +78,10 @@ class VisaApplication extends Model
     public function statusHistories(): HasMany
     {
         return $this->hasMany(ApplicationStatusHistory::class, 'visa_application_id', 'ulid');
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ApplicationDocument::class, 'visa_application_id', 'ulid');
     }
 }
