@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Applications\Models\VisaType;
 use App\Domain\Applications\Policies\VisaApplicationPolicy;
+use App\Domain\Documents\Models\ApplicationDocument;
+use App\Domain\Documents\Policies\ApplicationDocumentPolicy;
 use App\Domain\Identity\Models\ApplicantProfile;
 use App\Domain\Identity\Models\Country;
 use App\Domain\Payments\Models\VisaFee;
@@ -29,5 +31,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(VisaFee::class, VisaFeePolicy::class);
         Gate::policy(ApplicantProfile::class, ApplicantProfilePolicy::class);
         Gate::policy(VisaApplication::class, VisaApplicationPolicy::class);
+        Gate::policy(ApplicationDocument::class, ApplicationDocumentPolicy::class);
     }
 }
