@@ -35,6 +35,32 @@ class VisaApplicationPolicy
         return $user->hasAnyRole(['super_admin', 'admin', 'senior_officer']);
     }
 
+    public function requestAdditionalInfo(User $user, VisaApplication $application): bool
+    {
+        if ($user->hasAnyRole(['super_admin', 'admin', 'senior_officer'])) {
+            return true;
+        }
+
+        if ($user->hasRole('case_officer')) {
+            return $application->assigned_officer_id === $user->id;
+        }
+
+        return false;
+    }
+
+    public function scheduleAppointment(User $user, VisaApplication $application): bool
+    {
+        if ($user->hasAnyRole(['super_admin', 'admin', 'senior_officer'])) {
+            return true;
+        }
+
+        if ($user->hasRole('case_officer')) {
+            return $application->assigned_officer_id === $user->id;
+        }
+
+        return false;
+    }
+
     public function assign(User $user): bool
     {
         return $user->hasAnyRole(['super_admin', 'admin', 'senior_officer']);
