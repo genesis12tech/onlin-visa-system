@@ -12,9 +12,12 @@ use App\Domain\Identity\Models\Country;
 use App\Domain\Payments\Actions\HandlePaymentWebhook;
 use App\Domain\Payments\Enums\PaymentStatus;
 use App\Domain\Payments\Jobs\GenerateReceiptPdf;
+use App\Domain\Payments\Models\Invoice;
 use App\Domain\Payments\Models\Payment;
 use App\Models\User;
+use App\Notifications\PaymentSucceededNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
@@ -168,6 +171,65 @@ class HandlePaymentWebhookTest extends TestCase
         $this->assertEquals(ApplicationStatus::PaymentPending, $application->fresh()->status);
     }
 
+    public function test_checkout_completed_dispatches_payment_succeeded_notification(): void
+    {
+        Notification::fake();
+        Queue::fake();
+        [$application, $payment] = $this->makeApplicationAndPayment(null, 'cs_test_notify01');
+
+        (new HandlePaymentWebhook)->execute(
+            $this->makeEvent('checkout.session.completed', [
+                'id' => 'cs_test_notify01',
+                'payment_status' => 'paid',
+                'payment_intent' => 'pi_test_notify01',
+                'metadata' => ['visa_application_ulid' => $application->ulid],
+            ])
+        );
+
+        $applicantUser = $application->applicantProfile->user;
+        Notification::assertSentTo($applicantUser, PaymentSucceededNotification::class);
+    }
+
+    public function test_payment_succeeded_notification_is_on_default_queue(): void
+    {
+        $country = Country::create(['name' => 'QN', 'iso2' => 'QN', 'iso3' => 'QNN']);
+        $type = VisaType::create(['name' => 'T', 'code' => 'QT1', 'country_id' => $country->id, 'processing_days' => 1, 'validity_days' => 30]);
+        $form = FormTemplate::create(['visa_type_id' => $type->ulid, 'name' => 'F', 'schema' => json_encode([])]);
+        $user = User::factory()->create();
+        $profile = ApplicantProfile::create([
+            'user_id' => $user->id, 'first_name' => 'A', 'last_name' => 'B',
+            'date_of_birth' => '1990-01-01', 'gender' => 'male',
+            'nationality_id' => $country->id, 'country_of_residence_id' => $country->id,
+            'passport_number' => 'Q1234567', 'passport_expiry_date' => '2030-01-01',
+            'phone' => '+1234567890', 'address_line_1' => '1 St', 'city' => 'X',
+        ]);
+        $application = VisaApplication::create([
+            'tracking_number' => 'VA-QN-001',
+            'applicant_profile_id' => $profile->ulid,
+            'visa_type_id' => $type->ulid,
+            'form_template_id' => $form->ulid,
+            'status' => ApplicationStatus::PaymentPending,
+        ]);
+        $payment = Payment::create([
+            'visa_application_id' => $application->ulid,
+            'status' => PaymentStatus::Succeeded,
+            'provider' => 'stripe',
+            'provider_checkout_session_id' => 'cs_qn_001',
+            'amount_subtotal' => 5000,
+            'amount_total' => 5000,
+            'currency' => 'USD',
+        ]);
+        $invoice = Invoice::create([
+            'payment_id' => $payment->ulid,
+            'invoice_number' => 'INV-2026-000001',
+            'issued_at' => now(),
+        ]);
+
+        $notification = new PaymentSucceededNotification($payment, $invoice);
+
+        $this->assertEquals('default', $notification->queue);
+    }
+
     private function makeEvent(string $type, array $data, string $eventId = 'evt_test_001'): object
     {
         return (object) [
@@ -188,7 +250,7 @@ class HandlePaymentWebhookTest extends TestCase
         return $data;
     }
 
-    private function makeApplicationAndPayment(?string $paymentIntentId = null): array
+    private function makeApplicationAndPayment(?string $paymentIntentId = null, string $sessionId = 'cs_test_abc123'): array
     {
         $country = Country::create(['name' => 'Webhook', 'iso2' => 'WH', 'iso3' => 'WHK']);
         $visaType = VisaType::create([
@@ -231,7 +293,7 @@ class HandlePaymentWebhookTest extends TestCase
             'visa_application_id' => $application->ulid,
             'status' => PaymentStatus::Processing,
             'provider' => 'stripe',
-            'provider_checkout_session_id' => 'cs_test_abc123',
+            'provider_checkout_session_id' => $sessionId,
             'provider_payment_intent_id' => $paymentIntentId,
             'amount_subtotal' => 10000,
             'amount_total' => 10000,

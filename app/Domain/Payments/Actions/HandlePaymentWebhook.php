@@ -9,10 +9,13 @@ use App\Domain\Payments\Jobs\GenerateReceiptPdf;
 use App\Domain\Payments\Models\Invoice;
 use App\Domain\Payments\Models\Payment;
 use App\Domain\Payments\Models\PaymentWebhookEvent;
+use App\Notifications\PaymentSucceededNotification;
 use Illuminate\Support\Facades\DB;
 
 class HandlePaymentWebhook
 {
+    private ?string $succeededSessionId = null;
+
     public function execute(object $event): void
     {
         $webhookEvent = PaymentWebhookEvent::firstOrCreate(
@@ -42,6 +45,10 @@ class HandlePaymentWebhook
         } catch (\Throwable $e) {
             $webhookEvent->fresh()?->markFailed($e->getMessage());
             throw $e;
+        }
+
+        if ($this->succeededSessionId !== null) {
+            $this->notifyPaymentSucceeded($this->succeededSessionId);
         }
     }
 
@@ -86,6 +93,8 @@ class HandlePaymentWebhook
         ]);
 
         GenerateReceiptPdf::dispatch($invoice->ulid)->onQueue('pdfs');
+
+        $this->succeededSessionId = $session->id;
     }
 
     private function handlePaymentFailed(object $intent): void
@@ -104,6 +113,23 @@ class HandlePaymentWebhook
         ]);
     }
 
+    private function notifyPaymentSucceeded(string $sessionId): void
+    {
+        $payment = Payment::with(['visaApplication.applicantProfile.user', 'invoice'])
+            ->where('provider_checkout_session_id', $sessionId)
+            ->first();
+
+        if (! $payment || ! $payment->invoice) {
+            return;
+        }
+
+        $applicantUser = $payment->visaApplication?->applicantProfile?->user;
+
+        if ($applicantUser) {
+            $applicantUser->notify(new PaymentSucceededNotification($payment, $payment->invoice));
+        }
+    }
+
     private function generateInvoiceNumber(): string
     {
         $year = now()->format('Y');
@@ -118,7 +144,6 @@ class HandlePaymentWebhook
             }
         }
 
-        // Fallback: append milliseconds to guarantee uniqueness
         return 'INV-'.$year.'-'.now()->format('Hisu');
     }
 }
