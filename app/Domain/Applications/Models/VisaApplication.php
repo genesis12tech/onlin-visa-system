@@ -5,6 +5,7 @@ namespace App\Domain\Applications\Models;
 use App\Domain\Applications\Enums\ApplicationStatus;
 use App\Domain\Documents\Models\ApplicationDocument;
 use App\Domain\Identity\Models\ApplicantProfile;
+use App\Domain\Payments\Models\Payment;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -83,5 +84,10 @@ class VisaApplication extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(ApplicationDocument::class, 'visa_application_id', 'ulid');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'visa_application_id', 'ulid');
     }
 }
