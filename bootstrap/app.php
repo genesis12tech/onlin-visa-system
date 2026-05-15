@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn () => route('filament.admin.auth.login'));
+        $middleware->validateCsrfTokens(except: ['/webhooks/*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
