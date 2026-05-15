@@ -15,20 +15,18 @@ class HandlePaymentWebhook
 {
     public function execute(object $event): void
     {
-        $webhookEvent = PaymentWebhookEvent::where('event_id', $event->id)->first();
-
-        if ($webhookEvent?->processed_at !== null) {
-            return;
-        }
-
-        if (! $webhookEvent) {
-            $webhookEvent = PaymentWebhookEvent::create([
+        $webhookEvent = PaymentWebhookEvent::firstOrCreate(
+            ['event_id' => $event->id],
+            [
                 'provider' => 'stripe',
-                'event_id' => $event->id,
                 'event_type' => $event->type,
                 'payload' => json_decode(json_encode($event), true),
                 'created_at' => now(),
-            ]);
+            ]
+        );
+
+        if ($webhookEvent->processed_at !== null) {
+            return;
         }
 
         try {
@@ -42,7 +40,7 @@ class HandlePaymentWebhook
                 $webhookEvent->markProcessed();
             });
         } catch (\Throwable $e) {
-            $webhookEvent->markFailed($e->getMessage());
+            $webhookEvent->fresh()?->markFailed($e->getMessage());
             throw $e;
         }
     }
@@ -66,6 +64,10 @@ class HandlePaymentWebhook
         ]);
 
         $application = $payment->visaApplication;
+
+        if (! $application) {
+            throw new \RuntimeException("Payment {$payment->ulid} has no associated visa application.");
+        }
 
         $application->update(['status' => ApplicationStatus::PaymentCompleted]);
 
@@ -105,8 +107,18 @@ class HandlePaymentWebhook
     private function generateInvoiceNumber(): string
     {
         $year = now()->format('Y');
-        $count = Invoice::whereYear('created_at', $year)->count() + 1;
+        $maxAttempts = 10;
 
-        return 'INV-'.$year.'-'.str_pad((string) $count, 6, '0', STR_PAD_LEFT);
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $count = Invoice::whereYear('issued_at', $year)->count() + $attempt;
+            $candidate = 'INV-'.$year.'-'.str_pad((string) $count, 6, '0', STR_PAD_LEFT);
+
+            if (! Invoice::where('invoice_number', $candidate)->exists()) {
+                return $candidate;
+            }
+        }
+
+        // Fallback: append milliseconds to guarantee uniqueness
+        return 'INV-'.$year.'-'.now()->format('Hisu');
     }
 }
