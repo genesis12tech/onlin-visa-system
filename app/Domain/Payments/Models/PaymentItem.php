@@ -34,4 +34,9 @@ class PaymentItem extends Model
     {
         return $this->belongsTo(Payment::class, 'payment_id', 'ulid');
     }
+
+    public function visaFee(): BelongsTo
+    {
+        return $this->belongsTo(VisaFee::class, 'visa_fee_id', 'ulid');
+    }
 }
