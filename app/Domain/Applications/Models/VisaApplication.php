@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
@@ -89,5 +90,23 @@ class VisaApplication extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'visa_application_id', 'ulid');
+    }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(ApplicationNote::class, 'visa_application_id', 'ulid')
+            ->latest();
+    }
+
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(ApplicationAppointment::class, 'visa_application_id', 'ulid')
+            ->latest();
+    }
+
+    public function latestAppointment(): HasOne
+    {
+        return $this->hasOne(ApplicationAppointment::class, 'visa_application_id', 'ulid')
+            ->latestOfMany('appointment_at');
     }
 }
