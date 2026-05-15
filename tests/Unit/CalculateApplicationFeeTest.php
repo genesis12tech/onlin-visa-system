@@ -130,6 +130,36 @@ class CalculateApplicationFeeTest extends TestCase
         $this->assertEquals(1, $item['quantity']);
     }
 
+    public function test_throws_when_fees_have_mixed_currencies(): void
+    {
+        $visaType = $this->makeVisaType();
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'USD Fee',
+            'amount' => 5000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+        ]);
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'EUR Fee',
+            'amount' => 3000,
+            'currency' => 'EUR',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Mixed currencies are not supported');
+
+        (new CalculateApplicationFee)->execute($this->makeApplication($visaType));
+    }
+
     private function makeVisaType(): VisaType
     {
         $country = Country::create(['name' => 'Calcu', 'iso2' => 'CL', 'iso3' => 'CLC']);

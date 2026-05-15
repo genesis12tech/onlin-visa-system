@@ -26,6 +26,11 @@ class CalculateApplicationFee
             throw new \RuntimeException('No active fees found for this visa type.');
         }
 
+        $currencies = $fees->pluck('currency')->unique();
+        if ($currencies->count() > 1) {
+            throw new \RuntimeException('Mixed currencies are not supported for a single visa type.');
+        }
+
         $items = $fees->map(fn (VisaFee $fee) => [
             'visa_fee_id' => $fee->ulid,
             'description' => $fee->name,
