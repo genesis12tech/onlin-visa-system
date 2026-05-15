@@ -20,11 +20,23 @@ class GenerateReceiptPdf implements ShouldQueue
         $invoice = Invoice::with(['payment.items', 'payment.visaApplication'])->findOrFail($this->invoiceUlid);
         $payment = $invoice->payment;
 
+        if ($payment === null) {
+            $this->fail(new \RuntimeException("Invoice {$this->invoiceUlid} has no associated payment."));
+
+            return;
+        }
+
         $pdf = Pdf::loadView('pdfs.receipt', compact('invoice', 'payment'));
 
         $storagePath = 'receipts/'.Str::ulid().'.pdf';
 
-        Storage::disk('documents')->put($storagePath, $pdf->output());
+        $written = Storage::disk('documents')->put($storagePath, $pdf->output());
+
+        if (! $written) {
+            $this->fail(new \RuntimeException("Failed to write PDF to {$storagePath}"));
+
+            return;
+        }
 
         $invoice->update(['pdf_storage_path' => $storagePath]);
     }
