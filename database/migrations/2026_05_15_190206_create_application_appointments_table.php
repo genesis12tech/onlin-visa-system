@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('application_appointments', function (Blueprint $table) {
-            $table->char('ulid', 26)->primary();
+            $table->ulid('ulid')->primary();
             $table->char('visa_application_id', 26)->index();
             $table->foreign('visa_application_id')->references('ulid')->on('visa_applications')->cascadeOnDelete();
             $table->foreignId('created_by')->constrained('users');
