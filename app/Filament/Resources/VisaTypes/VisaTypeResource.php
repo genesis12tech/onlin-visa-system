@@ -6,6 +6,7 @@ use App\Domain\Applications\Models\VisaType;
 use App\Filament\Resources\VisaTypes\Pages\CreateVisaType;
 use App\Filament\Resources\VisaTypes\Pages\EditVisaType;
 use App\Filament\Resources\VisaTypes\Pages\ListVisaTypes;
+use App\Filament\Resources\VisaTypes\RelationManagers\DocumentRequirementsRelationManager;
 use App\Filament\Resources\VisaTypes\RelationManagers\FeesRelationManager;
 use App\Filament\Resources\VisaTypes\Schemas\VisaTypeForm;
 use App\Filament\Resources\VisaTypes\Tables\VisaTypesTable;
@@ -44,6 +45,7 @@ class VisaTypeResource extends Resource
     {
         return [
             FeesRelationManager::class,
+            DocumentRequirementsRelationManager::class,
         ];
     }
 
