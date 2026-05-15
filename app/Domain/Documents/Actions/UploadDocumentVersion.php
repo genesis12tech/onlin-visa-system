@@ -4,6 +4,7 @@ namespace App\Domain\Documents\Actions;
 
 use App\Domain\Documents\Enums\DocumentStatus;
 use App\Domain\Documents\Enums\ScanStatus;
+use App\Domain\Documents\Jobs\ScanDocumentVersionJob;
 use App\Domain\Documents\Models\ApplicationDocument;
 use App\Domain\Documents\Models\DocumentType;
 use App\Domain\Documents\Models\DocumentVersion;
@@ -33,7 +34,7 @@ class UploadDocumentVersion
         Storage::disk('documents')->put($storagePath, $contents);
 
         try {
-            return DB::transaction(function () use ($document, $file, $uploader, $sha256, $storagePath) {
+            $version = DB::transaction(function () use ($document, $file, $uploader, $sha256, $storagePath) {
                 $version = DocumentVersion::create([
                     'application_document_id' => $document->ulid,
                     'storage_path' => $storagePath,
@@ -67,6 +68,10 @@ class UploadDocumentVersion
             Storage::disk('documents')->delete($storagePath);
             throw $e;
         }
+
+        ScanDocumentVersionJob::dispatch($version->ulid)->onQueue('documents');
+
+        return $version;
     }
 
     private function validateFile(UploadedFile $file, DocumentType $documentType): void
