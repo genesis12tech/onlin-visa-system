@@ -13,12 +13,12 @@ class AppointmentScheduledNotification extends Notification implements ShouldQue
 {
     use Queueable;
 
-    public string $queue = 'emails';
-
     public function __construct(
         public readonly VisaApplication $application,
         public readonly ApplicationAppointment $appointment,
-    ) {}
+    ) {
+        $this->queue = 'emails';
+    }
 
     public function via(object $notifiable): array
     {

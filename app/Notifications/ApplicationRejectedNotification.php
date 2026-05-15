@@ -12,9 +12,10 @@ class ApplicationRejectedNotification extends Notification implements ShouldQueu
 {
     use Queueable;
 
-    public string $queue = 'emails';
-
-    public function __construct(public readonly VisaApplication $application) {}
+    public function __construct(public readonly VisaApplication $application)
+    {
+        $this->queue = 'emails';
+    }
 
     public function via(object $notifiable): array
     {

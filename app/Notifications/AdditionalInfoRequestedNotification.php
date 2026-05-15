@@ -12,12 +12,12 @@ class AdditionalInfoRequestedNotification extends Notification implements Should
 {
     use Queueable;
 
-    public string $queue = 'emails';
-
     public function __construct(
         public readonly VisaApplication $application,
         public readonly string $message,
-    ) {}
+    ) {
+        $this->queue = 'emails';
+    }
 
     public function via(object $notifiable): array
     {
