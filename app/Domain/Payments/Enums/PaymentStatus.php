@@ -28,8 +28,9 @@ enum PaymentStatus: string
         return match ($this) {
             self::Pending, self::Processing => 'warning',
             self::Succeeded => 'success',
-            self::Failed, self::Refunded,
-            self::PartiallyRefunded => 'danger',
+            self::Failed => 'danger',
+            self::Refunded => 'info',
+            self::PartiallyRefunded => 'warning',
         };
     }
 }
