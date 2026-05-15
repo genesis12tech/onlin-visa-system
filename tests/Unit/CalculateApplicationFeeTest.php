@@ -1,0 +1,154 @@
+<?php
+
+namespace Tests\Unit;
+
+use App\Domain\Applications\Models\VisaApplication;
+use App\Domain\Applications\Models\VisaType;
+use App\Domain\Identity\Models\Country;
+use App\Domain\Payments\Actions\CalculateApplicationFee;
+use App\Domain\Payments\Models\VisaFee;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class CalculateApplicationFeeTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_sums_all_active_current_fees(): void
+    {
+        $visaType = $this->makeVisaType();
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Application Fee',
+            'amount' => 5000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+        ]);
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Processing Fee',
+            'amount' => 2000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+        ]);
+
+        $result = (new CalculateApplicationFee)->execute($this->makeApplication($visaType));
+
+        $this->assertEquals(7000, $result['total_amount']);
+        $this->assertEquals('USD', $result['currency']);
+        $this->assertCount(2, $result['items']);
+    }
+
+    public function test_excludes_inactive_fees(): void
+    {
+        $visaType = $this->makeVisaType();
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Active Fee',
+            'amount' => 5000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+        ]);
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Inactive Fee',
+            'amount' => 3000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => false,
+        ]);
+
+        $result = (new CalculateApplicationFee)->execute($this->makeApplication($visaType));
+
+        $this->assertEquals(5000, $result['total_amount']);
+        $this->assertCount(1, $result['items']);
+    }
+
+    public function test_excludes_expired_fees(): void
+    {
+        $visaType = $this->makeVisaType();
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Expired Fee',
+            'amount' => 5000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subMonth(),
+            'effective_to' => now()->subDay(),
+            'is_active' => true,
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('No active fees found');
+
+        (new CalculateApplicationFee)->execute($this->makeApplication($visaType));
+    }
+
+    public function test_throws_when_no_fees_exist(): void
+    {
+        $visaType = $this->makeVisaType();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('No active fees found');
+
+        (new CalculateApplicationFee)->execute($this->makeApplication($visaType));
+    }
+
+    public function test_items_contain_fee_snapshot_fields(): void
+    {
+        $visaType = $this->makeVisaType();
+
+        $fee = VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Visa Fee',
+            'amount' => 8000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+        ]);
+
+        $result = (new CalculateApplicationFee)->execute($this->makeApplication($visaType));
+
+        $item = $result['items']->first();
+
+        $this->assertEquals($fee->ulid, $item['visa_fee_id']);
+        $this->assertEquals('Visa Fee', $item['description']);
+        $this->assertEquals(8000, $item['unit_amount']);
+        $this->assertEquals(1, $item['quantity']);
+    }
+
+    private function makeVisaType(): VisaType
+    {
+        $country = Country::create(['name' => 'Calcu', 'iso2' => 'CL', 'iso3' => 'CLC']);
+
+        return VisaType::create([
+            'name' => 'Tourist',
+            'code' => 'TOURIST_CALC_'.uniqid(),
+            'country_id' => $country->id,
+            'processing_days' => 3,
+            'validity_days' => 30,
+        ]);
+    }
+
+    private function makeApplication(VisaType $visaType): VisaApplication
+    {
+        $application = new VisaApplication;
+        $application->visa_type_id = $visaType->ulid;
+        $application->exists = true;
+
+        return $application;
+    }
+}
