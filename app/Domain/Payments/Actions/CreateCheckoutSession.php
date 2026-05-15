@@ -5,6 +5,7 @@ namespace App\Domain\Payments\Actions;
 use App\Domain\Applications\Enums\ApplicationStatus;
 use App\Domain\Applications\Models\ApplicationStatusHistory;
 use App\Domain\Applications\Models\VisaApplication;
+use App\Domain\Payments\Enums\PaymentStatus;
 use App\Domain\Payments\Models\Payment;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,12 @@ class CreateCheckoutSession
 {
     public function execute(VisaApplication $application, User $actor): string
     {
+        if ($application->status !== ApplicationStatus::Submitted) {
+            throw new \RuntimeException(
+                "Cannot initiate checkout for application in status: {$application->status->value}"
+            );
+        }
+
         $feeData = (new CalculateApplicationFee)->execute($application);
 
         $stripe = app(StripeClient::class);
@@ -38,10 +45,14 @@ class CreateCheckoutSession
             ],
         ]);
 
+        if (! $session->url) {
+            throw new \RuntimeException('Stripe did not return a checkout URL.');
+        }
+
         DB::transaction(function () use ($application, $actor, $feeData, $session): void {
             $payment = Payment::create([
                 'visa_application_id' => $application->ulid,
-                'status' => 'processing',
+                'status' => PaymentStatus::Processing,
                 'provider' => 'stripe',
                 'provider_checkout_session_id' => $session->id,
                 'amount_subtotal' => $feeData['total_amount'],

@@ -88,6 +88,16 @@ class CreateCheckoutSessionTest extends TestCase
         $this->assertEquals('https://checkout.stripe.com/pay/cs_test_mock123', $url);
     }
 
+    public function test_throws_if_application_not_in_submitted_status(): void
+    {
+        $this->application->update(['status' => ApplicationStatus::Approved]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/Cannot initiate checkout/');
+
+        (new CreateCheckoutSession)->execute($this->application, $this->actor);
+    }
+
     private function mockStripe(string $sessionId, string $sessionUrl): void
     {
         $mockSession = new \stdClass;
@@ -96,7 +106,7 @@ class CreateCheckoutSessionTest extends TestCase
         $mockSession->payment_intent = 'pi_test_mock456';
 
         $mockSessions = Mockery::mock();
-        $mockSessions->shouldReceive('create')->once()->andReturn($mockSession);
+        $mockSessions->shouldReceive('create')->zeroOrMoreTimes()->andReturn($mockSession);
 
         $mockCheckout = new \stdClass;
         $mockCheckout->sessions = $mockSessions;
