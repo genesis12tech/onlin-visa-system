@@ -18,6 +18,8 @@ class HandlePaymentWebhook
 
     public function execute(object $event): void
     {
+        $this->succeededSessionId = null;
+
         $webhookEvent = PaymentWebhookEvent::firstOrCreate(
             ['event_id' => $event->id],
             [

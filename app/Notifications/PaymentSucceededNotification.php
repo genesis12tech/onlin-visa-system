@@ -34,7 +34,7 @@ class PaymentSucceededNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $amount = number_format($this->payment->amount_total / 100, 2).' '.strtoupper($this->payment->currency);
-        $tracking = $this->payment->visaApplication->tracking_number ?? '—';
+        $tracking = $this->payment->visaApplication?->tracking_number ?? '—';
 
         return (new MailMessage)
             ->subject('Payment received — Invoice #'.$this->invoice->invoice_number)
