@@ -38,8 +38,14 @@ class VisaApplicationResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->with(['applicantProfile.nationality', 'visaType', 'officer']);
+
+        if (auth()->user()?->hasRole('case_officer')) {
+            $query->where('assigned_officer_id', auth()->id());
+        }
+
+        return $query;
     }
 
     public static function form(Schema $schema): Schema
