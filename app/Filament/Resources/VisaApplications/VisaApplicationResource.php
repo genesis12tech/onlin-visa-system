@@ -35,7 +35,7 @@ class VisaApplicationResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return (string) VisaApplication::count();
+        return (string) static::getEloquentQuery()->count();
     }
 
     public static function getEloquentQuery(): Builder

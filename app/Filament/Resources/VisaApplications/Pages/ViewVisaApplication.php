@@ -74,7 +74,10 @@ class ViewVisaApplication extends ViewRecord
                         ->required()
                         ->rows(3),
                 ])
-                ->action(fn (array $data) => (new RequestAdditionalInformation)->execute($this->record, auth()->user(), $data['message']))
+                ->action(function (array $data) {
+                    (new RequestAdditionalInformation)->execute($this->record, auth()->user(), $data['message']);
+                    $this->refreshFormData(['status']);
+                })
                 ->successNotificationTitle('Information requested'),
 
             Action::make('schedule_appointment')
