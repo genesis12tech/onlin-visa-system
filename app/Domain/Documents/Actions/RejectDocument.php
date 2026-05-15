@@ -5,6 +5,7 @@ namespace App\Domain\Documents\Actions;
 use App\Domain\Documents\Enums\DocumentStatus;
 use App\Domain\Documents\Models\ApplicationDocument;
 use App\Models\User;
+use App\Notifications\DocumentRejectedNotification;
 use App\Support\AuditLogger;
 use Illuminate\Support\Facades\DB;
 
@@ -12,7 +13,7 @@ class RejectDocument
 {
     public function execute(ApplicationDocument $document, User $officer, string $reason): ApplicationDocument
     {
-        return DB::transaction(function () use ($document, $officer, $reason) {
+        DB::transaction(function () use ($document, $officer, $reason) {
             $document->update([
                 'status' => DocumentStatus::Rejected,
                 'reviewed_by' => $officer->id,
@@ -21,8 +22,17 @@ class RejectDocument
             ]);
 
             AuditLogger::log('document.rejected', $document, ['reason' => $reason], $officer->id);
-
-            return $document->fresh();
         });
+
+        $document->refresh();
+        $document->load('visaApplication.applicantProfile.user', 'documentType');
+
+        $applicantUser = $document->visaApplication?->applicantProfile?->user;
+
+        if ($applicantUser) {
+            $applicantUser->notify(new DocumentRejectedNotification($document, $reason));
+        }
+
+        return $document;
     }
 }
