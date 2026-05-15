@@ -7,6 +7,7 @@ use App\Filament\Resources\VisaApplications\Pages\CreateVisaApplication;
 use App\Filament\Resources\VisaApplications\Pages\EditVisaApplication;
 use App\Filament\Resources\VisaApplications\Pages\ListVisaApplications;
 use App\Filament\Resources\VisaApplications\Pages\ViewVisaApplication;
+use App\Filament\Resources\VisaApplications\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\VisaApplications\Schemas\VisaApplicationForm;
 use App\Filament\Resources\VisaApplications\Tables\VisaApplicationsTable;
 use BackedEnum;
@@ -52,7 +53,9 @@ class VisaApplicationResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            DocumentsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
