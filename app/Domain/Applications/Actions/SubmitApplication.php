@@ -7,13 +7,14 @@ use App\Domain\Applications\Models\ApplicationStatusHistory;
 use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Documents\Enums\DocumentStatus;
 use App\Models\User;
+use App\Notifications\ApplicationSubmittedNotification;
 use Illuminate\Support\Facades\DB;
 
 class SubmitApplication
 {
     public function execute(VisaApplication $application, User $actor): VisaApplication
     {
-        return DB::transaction(function () use ($application, $actor) {
+        DB::transaction(function () use ($application, $actor) {
             $blockingDocExists = $application->documents()
                 ->whereIn('status', [
                     DocumentStatus::Pending->value,
@@ -40,8 +41,17 @@ class SubmitApplication
                 'actor_id' => $actor->id,
                 'created_at' => now(),
             ]);
-
-            return $application->fresh();
         });
+
+        $application->refresh();
+
+        $application->load('applicantProfile.user');
+        $applicantUser = $application->applicantProfile?->user;
+
+        if ($applicantUser) {
+            $applicantUser->notify(new ApplicationSubmittedNotification($application));
+        }
+
+        return $application;
     }
 }
