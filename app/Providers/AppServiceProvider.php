@@ -56,5 +56,17 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('document-download', function (Request $request) {
             return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
         });
+
+        RateLimiter::for('login', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
+
+        RateLimiter::for('mfa-otp', function (Request $request) {
+            return Limit::perMinutes(15, 3)->by($request->input('email', $request->ip()));
+        });
+
+        RateLimiter::for('register', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
+        });
     }
 }
