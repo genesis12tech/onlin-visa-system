@@ -33,6 +33,7 @@ class VisaApplication extends Model
         'decision_at',
         'decision_reason',
         'decision_letter_pdf_path',
+        'summary_pdf_path',
     ];
 
     protected function casts(): array
