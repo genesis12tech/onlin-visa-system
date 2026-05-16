@@ -2,10 +2,9 @@
 
 namespace App\Filament\Widgets;
 
-use App\Domain\Applications\Models\VisaApplication;
+use App\Domain\Reporting\Models\DailyApplicationMetrics;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class ByVisaTypeWidget extends ChartWidget
 {
@@ -15,18 +14,22 @@ class ByVisaTypeWidget extends ChartWidget
 
     protected ?string $heading = 'By visa type';
 
-    protected ?string $description = 'Current month';
+    protected ?string $description = 'Current month (from daily metrics)';
 
     protected ?string $maxHeight = '300px';
 
     protected function getData(): array
     {
-        $rows = VisaApplication::select('visa_types.name', DB::raw('COUNT(*) as count'))
-            ->join('visa_types', 'visa_applications.visa_type_id', '=', 'visa_types.ulid')
-            ->where('visa_applications.submitted_at', '>=', Carbon::now()->startOfMonth())
-            ->groupBy('visa_types.ulid', 'visa_types.name')
-            ->orderByDesc('count')
-            ->get();
+        $rows = DailyApplicationMetrics::with('visaType')
+            ->where('date', '>=', Carbon::now()->startOfMonth())
+            ->get()
+            ->groupBy('visa_type_id')
+            ->map(fn ($group) => [
+                'name' => $group->first()->visaType?->name ?? 'Unknown',
+                'count' => $group->sum('submitted_count'),
+            ])
+            ->sortByDesc('count')
+            ->values();
 
         $colors = [
             'rgba(99, 102, 241, 0.8)',
