@@ -13,12 +13,13 @@ class ReportingModelsTest extends TestCase
     {
         $model = new DailyPaymentMetrics([
             'total_collected' => '1000',
-            'total_refunded' => '0',
+            'total_refunded' => '50',
             'succeeded_count' => '5',
             'failed_count' => '1',
         ]);
 
         $this->assertIsInt($model->total_collected);
+        $this->assertIsInt($model->total_refunded);
         $this->assertIsInt($model->succeeded_count);
         $this->assertIsInt($model->failed_count);
     }
@@ -34,6 +35,9 @@ class ReportingModelsTest extends TestCase
         ]);
 
         $this->assertIsInt($model->reviewed_count);
+        $this->assertIsInt($model->approved_count);
+        $this->assertIsInt($model->rejected_count);
+        $this->assertIsInt($model->info_requested_count);
         $this->assertIsFloat($model->avg_review_hours);
     }
 

@@ -32,6 +32,6 @@ class OfficerPerformanceMetrics extends Model
 
     public function officer(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'officer_id');
+        return $this->belongsTo(User::class, 'officer_id', 'id');
     }
 }
