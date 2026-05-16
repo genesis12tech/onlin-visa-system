@@ -13,6 +13,12 @@ class GenerateReceiptPdf implements ShouldQueue
 {
     use Queueable;
 
+    public int $tries = 3;
+
+    public int $timeout = 60;
+
+    public array $backoff = [10, 30, 60];
+
     public function __construct(public readonly string $invoiceUlid) {}
 
     public function handle(): void

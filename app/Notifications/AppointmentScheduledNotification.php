@@ -13,6 +13,12 @@ class AppointmentScheduledNotification extends Notification implements ShouldQue
 {
     use Queueable;
 
+    public int $tries = 5;
+
+    public int $timeout = 30;
+
+    public array $backoff = [5, 15, 30];
+
     public function __construct(
         public readonly VisaApplication $application,
         public readonly ApplicationAppointment $appointment,

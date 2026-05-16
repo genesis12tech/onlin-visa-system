@@ -12,6 +12,12 @@ class ApplicationApprovedNotification extends Notification implements ShouldQueu
 {
     use Queueable;
 
+    public int $tries = 5;
+
+    public int $timeout = 30;
+
+    public array $backoff = [5, 15, 30];
+
     public function __construct(public readonly VisaApplication $application)
     {
         $this->queue = 'emails';
