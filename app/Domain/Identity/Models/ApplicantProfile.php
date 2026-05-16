@@ -3,13 +3,16 @@
 namespace App\Domain\Identity\Models;
 
 use App\Models\User;
+use Database\Factories\ApplicantProfileFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ApplicantProfile extends Model
 {
-    use HasUlids;
+    /** @use HasFactory<ApplicantProfileFactory> */
+    use HasFactory, HasUlids;
 
     protected $primaryKey = 'ulid';
 
