@@ -46,7 +46,7 @@ Route::middleware('auth')->group(function () {
         ->name('verification.send');
 
     // Profile setup — requires verified email but not complete profile (that would be circular)
-    Route::get('/profile/setup', fn () => new SetupWizard)
+    Route::get('/profile/setup', SetupWizard::class)
         ->middleware('verified')
         ->name('profile.setup');
 
