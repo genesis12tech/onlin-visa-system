@@ -12,6 +12,8 @@ use App\Domain\Identity\Models\Country;
 use App\Domain\Payments\Models\Payment;
 use App\Domain\Payments\Models\VisaFee;
 use App\Domain\Payments\Policies\PaymentPolicy;
+use App\Domain\Reporting\Models\ApplicationExport;
+use App\Domain\Reporting\Policies\ApplicationExportPolicy;
 use App\Models\User;
 use App\Policies\ApplicantProfilePolicy;
 use App\Policies\CountryPolicy;
@@ -39,5 +41,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(VisaApplication::class, VisaApplicationPolicy::class);
         Gate::policy(ApplicationDocument::class, ApplicationDocumentPolicy::class);
         Gate::policy(Payment::class, PaymentPolicy::class);
+        Gate::policy(ApplicationExport::class, ApplicationExportPolicy::class);
     }
 }
