@@ -3,6 +3,7 @@
 namespace App\Domain\Applications\Actions;
 
 use App\Domain\Applications\Enums\ApplicationStatus;
+use App\Domain\Applications\Jobs\GenerateDecisionLetterPdf;
 use App\Domain\Applications\Models\ApplicationStatusHistory;
 use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Documents\Enums\DocumentStatus;
@@ -44,6 +45,8 @@ class ApproveApplication
         $application->refresh();
 
         $this->notifyApplicant($application);
+
+        GenerateDecisionLetterPdf::dispatch($application->ulid)->onQueue('pdfs');
 
         return $application;
     }

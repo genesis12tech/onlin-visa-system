@@ -3,6 +3,7 @@
 namespace App\Domain\Applications\Actions;
 
 use App\Domain\Applications\Enums\ApplicationStatus;
+use App\Domain\Applications\Jobs\GenerateDecisionLetterPdf;
 use App\Domain\Applications\Models\ApplicationStatusHistory;
 use App\Domain\Applications\Models\VisaApplication;
 use App\Models\User;
@@ -46,6 +47,8 @@ class RejectApplication
         if ($applicantUser) {
             $applicantUser->notify(new ApplicationRejectedNotification($application));
         }
+
+        GenerateDecisionLetterPdf::dispatch($application->ulid)->onQueue('pdfs');
 
         return $application;
     }
