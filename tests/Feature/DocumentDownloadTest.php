@@ -94,7 +94,7 @@ class DocumentDownloadTest extends TestCase
             'version' => $version->ulid,
         ]);
 
-        $this->get($url)->assertRedirect('/admin/login');
+        $this->get($url)->assertRedirect('/login');
     }
 
     public function test_download_returns_403_for_unauthorized_user(): void
