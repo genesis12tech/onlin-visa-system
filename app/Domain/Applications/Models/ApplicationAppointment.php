@@ -19,6 +19,7 @@ class ApplicationAppointment extends Model
         'appointment_at',
         'location',
         'instructions',
+        'confirmation_pdf_path',
     ];
 
     protected function casts(): array

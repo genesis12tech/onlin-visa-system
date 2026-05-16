@@ -2,6 +2,7 @@
 
 namespace App\Domain\Applications\Actions;
 
+use App\Domain\Applications\Jobs\GenerateAppointmentConfirmationPdf;
 use App\Domain\Applications\Models\ApplicationAppointment;
 use App\Domain\Applications\Models\ApplicationStatusHistory;
 use App\Domain\Applications\Models\VisaApplication;
@@ -54,6 +55,8 @@ class ScheduleAppointment
         if ($applicantUser) {
             $applicantUser->notify(new AppointmentScheduledNotification($application, $appointment));
         }
+
+        GenerateAppointmentConfirmationPdf::dispatch($appointment->ulid)->onQueue('pdfs');
 
         return $appointment;
     }
