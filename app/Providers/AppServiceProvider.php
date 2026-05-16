@@ -16,10 +16,12 @@ use App\Domain\Reporting\Models\ApplicationExport;
 use App\Domain\Reporting\Policies\ApplicationExportPolicy;
 use App\Models\User;
 use App\Policies\ApplicantProfilePolicy;
+use App\Policies\AuditLogPolicy;
 use App\Policies\CountryPolicy;
 use App\Policies\UserPolicy;
 use App\Policies\VisaFeePolicy;
 use App\Policies\VisaTypePolicy;
+use App\Support\AuditLog;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -45,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ApplicationDocument::class, ApplicationDocumentPolicy::class);
         Gate::policy(Payment::class, PaymentPolicy::class);
         Gate::policy(ApplicationExport::class, ApplicationExportPolicy::class);
+        Gate::policy(AuditLog::class, AuditLogPolicy::class);
 
         RateLimiter::for('webhook', function (Request $request) {
             return Limit::perMinute(60)->by($request->ip());

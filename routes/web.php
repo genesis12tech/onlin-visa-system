@@ -15,7 +15,7 @@ Route::get('/documents/{version}/download', [DocumentDownloadController::class, 
 
 Route::get('/exports/{ulid}/download', [ExportDownloadController::class, 'download'])
     ->name('exports.download')
-    ->middleware('auth');
+    ->middleware(['auth', 'throttle:document-download']);
 
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
     ->name('webhooks.stripe')

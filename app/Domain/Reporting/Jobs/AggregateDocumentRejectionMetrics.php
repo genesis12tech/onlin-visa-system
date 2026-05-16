@@ -17,7 +17,7 @@ class AggregateDocumentRejectionMetrics implements ShouldQueue
 
     public int $timeout = 120;
 
-    public int $backoff = 30;
+    public array $backoff = [10, 30, 60];
 
     public function __construct(
         public readonly string $date, // Y-m-d
