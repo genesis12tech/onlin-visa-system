@@ -11,6 +11,11 @@ class Country extends Model
     /** @use HasFactory<CountryFactory> */
     use HasFactory;
 
+    protected static function newFactory(): CountryFactory
+    {
+        return CountryFactory::new();
+    }
+
     protected $fillable = [
         'name',
         'iso2',

@@ -14,6 +14,11 @@ class ApplicantProfile extends Model
     /** @use HasFactory<ApplicantProfileFactory> */
     use HasFactory, HasUlids;
 
+    protected static function newFactory(): ApplicantProfileFactory
+    {
+        return ApplicantProfileFactory::new();
+    }
+
     protected $primaryKey = 'ulid';
 
     protected $fillable = [
