@@ -20,7 +20,10 @@ use App\Policies\CountryPolicy;
 use App\Policies\UserPolicy;
 use App\Policies\VisaFeePolicy;
 use App\Policies\VisaTypePolicy;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Stripe\StripeClient;
 
@@ -42,5 +45,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ApplicationDocument::class, ApplicationDocumentPolicy::class);
         Gate::policy(Payment::class, PaymentPolicy::class);
         Gate::policy(ApplicationExport::class, ApplicationExportPolicy::class);
+
+        RateLimiter::for('webhook', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip());
+        });
+
+        RateLimiter::for('document-download', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
+        });
     }
 }

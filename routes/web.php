@@ -11,11 +11,12 @@ Route::get('/', function () {
 
 Route::get('/documents/{version}/download', [DocumentDownloadController::class, 'download'])
     ->name('documents.download')
-    ->middleware(['auth', 'signed']);
+    ->middleware(['auth', 'signed', 'throttle:document-download']);
 
 Route::get('/exports/{ulid}/download', [ExportDownloadController::class, 'download'])
     ->name('exports.download')
     ->middleware('auth');
 
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
-    ->name('webhooks.stripe');
+    ->name('webhooks.stripe')
+    ->middleware('throttle:webhook');
