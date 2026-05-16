@@ -38,12 +38,12 @@ class AggregateDailyApplicationMetrics implements ShouldQueue
                 ->count();
 
             $approved = VisaApplication::where('visa_type_id', $visaType->ulid)
-                ->where('status', ApplicationStatus::Approved)
+                ->where('status', ApplicationStatus::Approved->value)
                 ->whereBetween('decision_at', [$start, $end])
                 ->count();
 
             $rejected = VisaApplication::where('visa_type_id', $visaType->ulid)
-                ->where('status', ApplicationStatus::Rejected)
+                ->where('status', ApplicationStatus::Rejected->value)
                 ->whereBetween('decision_at', [$start, $end])
                 ->count();
 
@@ -64,7 +64,7 @@ class AggregateDailyApplicationMetrics implements ShouldQueue
                 ->avg(fn ($app) => $app->submitted_at->diffInDays($app->decision_at));
 
             DailyApplicationMetrics::updateOrCreate(
-                ['date' => $date->copy()->startOfDay(), 'visa_type_id' => $visaType->ulid],
+                ['date' => $date->startOfDay(), 'visa_type_id' => $visaType->ulid],
                 [
                     'submitted_count' => $submitted,
                     'approved_count' => $approved,

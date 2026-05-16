@@ -206,7 +206,10 @@ class MetricsAggregationTest extends TestCase
         ]);
 
         $user = User::factory()->create();
-        $country = Country::first();
+        $country = Country::firstOrCreate(
+            ['iso2' => 'TE'],
+            ['name' => 'Test', 'iso3' => 'TST']
+        );
 
         $profile = ApplicantProfile::create([
             'user_id' => $user->id,

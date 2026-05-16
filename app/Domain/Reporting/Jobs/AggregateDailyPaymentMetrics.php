@@ -44,7 +44,7 @@ class AggregateDailyPaymentMetrics implements ShouldQueue
             $failed = $payments->filter(fn ($p) => $p->status === PaymentStatus::Failed);
 
             DailyPaymentMetrics::updateOrCreate(
-                ['date' => $date->copy()->startOfDay(), 'currency' => $currency],
+                ['date' => $date->startOfDay(), 'currency' => $currency],
                 [
                     'total_collected' => (int) $succeeded->sum('amount_total'),
                     'total_refunded' => 0,

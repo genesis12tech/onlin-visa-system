@@ -51,7 +51,7 @@ class AggregateOfficerPerformanceMetrics implements ShouldQueue
                 ->get('to_status');
 
             OfficerPerformanceMetrics::updateOrCreate(
-                ['date' => $date->copy()->startOfDay(), 'officer_id' => $officerId],
+                ['date' => $date->startOfDay(), 'officer_id' => $officerId],
                 [
                     'reviewed_count' => $histories->count(),
                     'approved_count' => $histories->where('to_status', ApplicationStatus::Approved->value)->count(),
@@ -60,7 +60,6 @@ class AggregateOfficerPerformanceMetrics implements ShouldQueue
                         ApplicationStatus::AdditionalInfoRequested->value,
                         ApplicationStatus::DocsRequired->value,
                     ])->count(),
-                    'avg_review_hours' => null,
                 ]
             );
         }

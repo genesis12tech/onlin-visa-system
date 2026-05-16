@@ -34,6 +34,7 @@ class AggregateDocumentRejectionMetrics implements ShouldQueue
         $rejections = ApplicationDocument::where('status', DocumentStatus::Rejected)
             ->whereBetween('reviewed_at', [$start, $end])
             ->whereNotNull('document_type_id')
+            ->whereNotNull('rejection_reason')
             ->get(['document_type_id', 'rejection_reason'])
             ->groupBy('document_type_id');
 
@@ -47,7 +48,7 @@ class AggregateDocumentRejectionMetrics implements ShouldQueue
                 ->toArray();
 
             DocumentRejectionMetrics::updateOrCreate(
-                ['date' => $date->copy()->startOfDay(), 'document_type_id' => $documentTypeId],
+                ['date' => $date->startOfDay(), 'document_type_id' => $documentTypeId],
                 [
                     'rejection_count' => $docs->count(),
                     'top_reasons' => $topReasons,
