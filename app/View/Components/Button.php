@@ -11,6 +11,7 @@ class Button extends Component
         public string $variant = 'primary',
         public string $type = 'button',
         public bool $loading = false,
+        public string $tag = 'button',
     ) {}
 
     public function render(): View

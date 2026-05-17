@@ -1,4 +1,4 @@
-@props(['variant' => 'primary', 'type' => 'button', 'loading' => false])
+@props(['variant' => 'primary', 'type' => 'button', 'loading' => false, 'tag' => 'button'])
 
 @php
 $classes = match($variant) {
@@ -9,8 +9,8 @@ $classes = match($variant) {
 };
 @endphp
 
-<button
-    type="{{ $type }}"
+<{{ $tag }}
+    @if($tag === 'button') type="{{ $type }}" @endif
     {{ $attributes->merge(['class' => "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors $classes"]) }}
     @if($loading) disabled @endif
 >
@@ -18,4 +18,4 @@ $classes = match($variant) {
         <i class="ti ti-loader-2 animate-spin text-base"></i>
     @endif
     {{ $slot }}
-</button>
+</{{ $tag }}>
