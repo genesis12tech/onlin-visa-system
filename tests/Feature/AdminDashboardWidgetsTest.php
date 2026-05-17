@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Domain\Applications\Models\VisaType;
 use App\Domain\Reporting\Models\DailyApplicationMetrics;
+use App\Domain\Reporting\Models\DailyPaymentMetrics;
+use App\Filament\Widgets\PaymentStatsWidget;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -75,5 +77,35 @@ class AdminDashboardWidgetsTest extends TestCase
             ->values();
 
         $this->assertCount(0, $tablesQueried, 'StatsOverviewWidget must not query visa_applications; found: '.implode(', ', $tablesQueried->toArray()));
+    }
+
+    public function test_payment_stats_widget_shows_collected_this_month(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+
+        DailyPaymentMetrics::create([
+            'date' => today(),
+            'currency' => 'USD',
+            'total_collected' => 25000, // $250.00 in cents
+            'total_refunded' => 0,
+            'succeeded_count' => 5,
+            'failed_count' => 1,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(PaymentStatsWidget::class)
+            ->assertSee('250.00');
+    }
+
+    public function test_payment_stats_widget_renders_with_no_data(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+
+        Livewire::actingAs($admin)
+            ->test(PaymentStatsWidget::class)
+            ->assertSuccessful()
+            ->assertSee('$0.00');
     }
 }
