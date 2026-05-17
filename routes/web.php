@@ -10,10 +10,14 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentDownloadController;
 use App\Http\Controllers\ExportDownloadController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReceiptDownloadController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureProfileComplete;
 use App\Livewire\Applications\ApplicationWizard;
+use App\Livewire\Payments\FeeSummary;
 use App\Livewire\Profile\SetupWizard;
+use App\Livewire\Tracking\PublicTrackingForm;
 use Illuminate\Support\Facades\Route;
 
 // Guest-only routes
@@ -61,6 +65,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/applications', [ApplicationController::class, 'store'])->name('applications.store');
         Route::get('/applications/{tracking}', ApplicationWizard::class)->name('applications.wizard');
         Route::post('/applications/{tracking}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');
+
+        // Payment flow
+        Route::get('/applications/{tracking}/pay', FeeSummary::class)->name('applications.pay');
+        Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
     });
 });
 
@@ -75,6 +83,14 @@ Route::get('/documents/{version}/download', [DocumentDownloadController::class, 
 Route::get('/exports/{ulid}/download', [ExportDownloadController::class, 'download'])
     ->name('exports.download')
     ->middleware(['auth', 'throttle:document-download']);
+
+// Receipt download — auth required but not profile-complete check
+Route::get('/invoices/{invoice}/receipt', [ReceiptDownloadController::class, 'download'])
+    ->name('invoices.receipt')
+    ->middleware(['auth', 'throttle:document-download']);
+
+// Public tracking — no auth
+Route::get('/track', PublicTrackingForm::class)->name('track');
 
 // Stripe webhook — no auth
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
