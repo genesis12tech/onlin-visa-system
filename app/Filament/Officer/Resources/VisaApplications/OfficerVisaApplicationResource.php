@@ -6,6 +6,7 @@ use App\Domain\Applications\Models\VisaApplication;
 use App\Filament\Officer\Resources\VisaApplications\Pages\ListOfficerApplications;
 use App\Filament\Officer\Resources\VisaApplications\Pages\ViewOfficerApplication;
 use App\Filament\Officer\Resources\VisaApplications\RelationManagers\OfficerDocumentsRelationManager;
+use App\Filament\Officer\Resources\VisaApplications\RelationManagers\OfficerNotesRelationManager;
 use App\Filament\Officer\Resources\VisaApplications\Tables\OfficerApplicationsTable;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -50,6 +51,7 @@ class OfficerVisaApplicationResource extends Resource
     {
         return [
             OfficerDocumentsRelationManager::class,
+            OfficerNotesRelationManager::class,
         ];
     }
 
