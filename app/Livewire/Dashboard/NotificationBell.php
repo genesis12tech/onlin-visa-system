@@ -16,7 +16,7 @@ class NotificationBell extends Component
 
     public function markAllAsRead(): void
     {
-        auth()->user()->unreadNotifications->markAsRead();
+        auth()->user()->unreadNotifications()->update(['read_at' => now()]);
         $this->unreadCount = 0;
     }
 

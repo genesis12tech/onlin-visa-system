@@ -80,6 +80,8 @@ class NotificationBellTest extends TestCase
             ->assertSet('unreadCount', 1)
             ->call('markAllAsRead')
             ->assertSet('unreadCount', 0);
+
+        $this->assertDatabaseMissing('notifications', ['read_at' => null]);
     }
 
     public function test_bell_shows_empty_state_when_user_has_no_notifications(): void
