@@ -2,13 +2,21 @@
 
 namespace App\Domain\Applications\Models;
 
+use Database\Factories\FormTemplateFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FormTemplate extends Model
 {
-    use HasUlids;
+    /** @use HasFactory<FormTemplateFactory> */
+    use HasFactory, HasUlids;
+
+    protected static function newFactory(): FormTemplateFactory
+    {
+        return FormTemplateFactory::new();
+    }
 
     protected $primaryKey = 'ulid';
 

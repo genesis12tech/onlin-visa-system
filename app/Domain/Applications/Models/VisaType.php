@@ -5,14 +5,22 @@ namespace App\Domain\Applications\Models;
 use App\Domain\Documents\Models\VisaTypeDocumentRequirement;
 use App\Domain\Identity\Models\Country;
 use App\Domain\Payments\Models\VisaFee;
+use Database\Factories\VisaTypeFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VisaType extends Model
 {
-    use HasUlids;
+    /** @use HasFactory<VisaTypeFactory> */
+    use HasFactory, HasUlids;
+
+    protected static function newFactory(): VisaTypeFactory
+    {
+        return VisaTypeFactory::new();
+    }
 
     protected $primaryKey = 'ulid';
 

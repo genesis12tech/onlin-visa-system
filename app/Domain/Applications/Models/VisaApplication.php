@@ -7,7 +7,9 @@ use App\Domain\Documents\Models\ApplicationDocument;
 use App\Domain\Identity\Models\ApplicantProfile;
 use App\Domain\Payments\Models\Payment;
 use App\Models\User;
+use Database\Factories\VisaApplicationFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,7 +19,13 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class VisaApplication extends Model
 {
-    use HasUlids, LogsActivity;
+    /** @use HasFactory<VisaApplicationFactory> */
+    use HasFactory, HasUlids, LogsActivity;
+
+    protected static function newFactory(): VisaApplicationFactory
+    {
+        return VisaApplicationFactory::new();
+    }
 
     protected $primaryKey = 'ulid';
 
@@ -92,6 +100,16 @@ class VisaApplication extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'visa_application_id', 'ulid');
+    }
+
+    public function answers(): HasMany
+    {
+        return $this->hasMany(ApplicationAnswer::class, 'visa_application_id', 'ulid');
+    }
+
+    public function snapshot(): HasOne
+    {
+        return $this->hasOne(ApplicationSnapshot::class, 'visa_application_id', 'ulid');
     }
 
     public function notes(): HasMany
