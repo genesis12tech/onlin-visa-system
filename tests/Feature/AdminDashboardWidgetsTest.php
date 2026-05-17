@@ -3,8 +3,13 @@
 namespace Tests\Feature;
 
 use App\Domain\Applications\Models\VisaType;
+use App\Domain\Documents\Models\DocumentType;
 use App\Domain\Reporting\Models\DailyApplicationMetrics;
 use App\Domain\Reporting\Models\DailyPaymentMetrics;
+use App\Domain\Reporting\Models\DocumentRejectionMetrics;
+use App\Domain\Reporting\Models\OfficerPerformanceMetrics;
+use App\Filament\Widgets\DocumentRejectionStatsWidget;
+use App\Filament\Widgets\OfficerPerformanceWidget;
 use App\Filament\Widgets\PaymentStatsWidget;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Models\User;
@@ -107,5 +112,57 @@ class AdminDashboardWidgetsTest extends TestCase
             ->test(PaymentStatsWidget::class)
             ->assertSuccessful()
             ->assertSee('$0.00');
+    }
+
+    public function test_document_rejection_widget_shows_monthly_count(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+
+        $docType = DocumentType::factory()->create(['name' => 'Passport Scan']);
+
+        DocumentRejectionMetrics::create([
+            'date' => today(),
+            'document_type_id' => $docType->ulid,
+            'rejection_count' => 12,
+            'top_reasons' => json_encode([['reason' => 'blurry', 'count' => 8]]),
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(DocumentRejectionStatsWidget::class)
+            ->assertSee('12');
+    }
+
+    public function test_document_rejection_widget_renders_with_no_data(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+
+        Livewire::actingAs($admin)
+            ->test(DocumentRejectionStatsWidget::class)
+            ->assertSuccessful();
+    }
+
+    public function test_officer_performance_widget_shows_officer_stats(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+
+        $officer = User::factory()->create(['name' => 'Jane Officer']);
+
+        OfficerPerformanceMetrics::create([
+            'date' => today(),
+            'officer_id' => $officer->id,
+            'reviewed_count' => 14,
+            'approved_count' => 10,
+            'rejected_count' => 4,
+            'info_requested_count' => 2,
+            'avg_review_hours' => 3.5,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(OfficerPerformanceWidget::class)
+            ->assertSee('Jane Officer')
+            ->assertSee('14');
     }
 }
