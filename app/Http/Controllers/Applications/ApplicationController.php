@@ -12,13 +12,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Applications\StartApplicationRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class ApplicationController extends Controller
 {
     public function start(Request $request): View
     {
-        $this->authorize('create', VisaApplication::class);
+        Gate::authorize('create', VisaApplication::class);
 
         $visaTypes = VisaType::where('is_active', true)
             ->with('country')
@@ -30,7 +31,7 @@ class ApplicationController extends Controller
 
     public function store(StartApplicationRequest $request): RedirectResponse
     {
-        $this->authorize('create', VisaApplication::class);
+        Gate::authorize('create', VisaApplication::class);
 
         $visaType = VisaType::where('ulid', $request->validated('visa_type_ulid'))->firstOrFail();
 
@@ -63,7 +64,7 @@ class ApplicationController extends Controller
     {
         $application = VisaApplication::where('tracking_number', $tracking)->firstOrFail();
 
-        $this->authorize('withdraw', $application);
+        Gate::authorize('withdraw', $application);
 
         WithdrawApplication::run($application, $request->user());
 

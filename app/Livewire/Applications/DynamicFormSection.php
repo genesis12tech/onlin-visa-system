@@ -6,6 +6,7 @@ use App\Domain\Applications\Actions\UpdateApplicationSection;
 use App\Domain\Applications\Models\VisaApplication;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
@@ -61,6 +62,7 @@ class DynamicFormSection extends Component
     }
 
     /** @return array<string, bool> */
+    #[Computed]
     public function visibleFields(): array
     {
         $result = [];
