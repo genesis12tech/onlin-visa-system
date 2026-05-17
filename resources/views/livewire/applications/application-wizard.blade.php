@@ -49,6 +49,7 @@
 
         {{-- Review step --}}
         @if($onReviewStep)
+            @php $canSubmit = $this->canSubmit(); @endphp
             <x-card title="Review your application">
                 <div class="space-y-6">
                     <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -56,11 +57,11 @@
                     </p>
 
                     @foreach($sections as $section)
+                        @php $savedAnswers = $this->savedAnswersForSection($section['key']); @endphp
                         <div>
                             <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">{{ $section['title'] }}</h4>
                             <dl class="space-y-1">
                                 @foreach($section['fields'] as $field)
-                                    @php $savedAnswers = $this->savedAnswersForSection($section['key']); @endphp
                                     <div class="flex gap-2 text-sm">
                                         <dt class="text-gray-500 dark:text-gray-400 min-w-40">{{ $field['label'] }}</dt>
                                         <dd class="text-gray-900 dark:text-white font-medium">
@@ -72,18 +73,22 @@
                         </div>
                     @endforeach
 
-                    @if(!$this->canSubmit())
+                    @if(!$canSubmit)
                         <x-alert type="warning" :dismissible="false">
                             All required documents must be uploaded before you can submit.
                         </x-alert>
                     @endif
+
+                    @error('submit')
+                        <x-alert type="error" :dismissible="false">{{ $message }}</x-alert>
+                    @enderror
 
                     <div class="flex items-center justify-between pt-2">
                         <x-button variant="secondary" wire:click="goBack">
                             &larr; Back
                         </x-button>
 
-                        @if($this->canSubmit())
+                        @if($canSubmit)
                             <x-button wire:click="submit" wire:loading.attr="disabled" wire:target="submit">
                                 <span wire:loading.remove wire:target="submit">Submit application &rarr;</span>
                                 <span wire:loading wire:target="submit">Submitting…</span>
@@ -118,7 +123,7 @@
 
                 <x-button wire:click="advance">
                     @if($currentSectionIndex < count($sections) - 1)
-                        Save &amp; continue &rarr;
+                        Next &rarr;
                     @else
                         Review application &rarr;
                     @endif

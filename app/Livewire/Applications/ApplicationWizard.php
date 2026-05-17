@@ -5,6 +5,7 @@ namespace App\Livewire\Applications;
 use App\Domain\Applications\Actions\SubmitApplication;
 use App\Domain\Applications\Enums\ApplicationStatus;
 use App\Domain\Applications\Models\VisaApplication;
+use App\Domain\Documents\Enums\DocumentStatus;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
@@ -22,8 +23,6 @@ class ApplicationWizard extends Component
     public int $currentSectionIndex = 0;
 
     public bool $onReviewStep = false;
-
-    public bool $submitting = false;
 
     public function mount(string $tracking): void
     {
@@ -86,7 +85,11 @@ class ApplicationWizard extends Component
         }
 
         return ! $this->application->documents()
-            ->whereIn('status', ['pending', 'rejected', 'infected'])
+            ->whereIn('status', [
+                DocumentStatus::Pending->value,
+                DocumentStatus::Rejected->value,
+                DocumentStatus::Infected->value,
+            ])
             ->exists();
     }
 
@@ -94,9 +97,13 @@ class ApplicationWizard extends Component
     {
         Gate::authorize('submit', $this->application);
 
-        $this->submitting = true;
+        try {
+            app(SubmitApplication::class)->execute($this->application, auth()->user());
+        } catch (\RuntimeException $e) {
+            $this->addError('submit', $e->getMessage());
 
-        app(SubmitApplication::class)->execute($this->application, auth()->user());
+            return;
+        }
 
         $this->redirect(route('applications.wizard', $this->tracking));
     }
@@ -109,6 +116,8 @@ class ApplicationWizard extends Component
 
     public function render(): View
     {
+        $this->application->loadMissing(['formTemplate', 'visaType', 'answers']);
+
         return view('livewire.applications.application-wizard')
             ->layout('layouts.app', ['title' => 'Application — '.$this->application->tracking_number]);
     }
