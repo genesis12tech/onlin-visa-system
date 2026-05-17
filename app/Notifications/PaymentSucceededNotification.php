@@ -34,14 +34,17 @@ class PaymentSucceededNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $amount = number_format($this->payment->amount_total / 100, 2).' '.strtoupper($this->payment->currency);
-        $tracking = $this->payment->visaApplication?->tracking_number ?? '—';
+        $trackingNumber = $this->payment->visaApplication?->tracking_number ?? '—';
 
         return (new MailMessage)
             ->subject('Payment received — Invoice #'.$this->invoice->invoice_number)
-            ->greeting('Dear '.$notifiable->name.',')
-            ->line('We have received your payment of '.$amount.' for application ('.$tracking.').')
-            ->line('Invoice: '.$this->invoice->invoice_number)
-            ->action('View Application', url('/'));
+            ->markdown('emails.payment-succeeded', [
+                'applicantName' => $notifiable->name,
+                'invoiceNumber' => $this->invoice->invoice_number,
+                'amount' => $amount,
+                'trackingNumber' => $trackingNumber,
+                'receiptUrl' => route('invoices.receipt', $this->invoice->ulid),
+            ]);
     }
 
     public function toArray(object $notifiable): array

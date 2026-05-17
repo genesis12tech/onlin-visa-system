@@ -32,16 +32,20 @@ class DocumentRejectedNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $documentTypeName = $this->document->documentType->name ?? 'document';
         $trackingNumber = $this->document->visaApplication?->tracking_number ?? '—';
+        $applicationUrl = $this->document->visaApplication?->tracking_number
+            ? route('applications.wizard', $this->document->visaApplication->tracking_number)
+            : route('dashboard');
 
         return (new MailMessage)
             ->subject('Document rejected — action required')
-            ->greeting('Dear '.$notifiable->name.',')
-            ->line('Your '.$documentTypeName.' for application ('.$trackingNumber.') has been rejected.')
-            ->line('Reason: '.$this->reason)
-            ->line('Please upload a replacement document to continue your application.')
-            ->action('Upload Document', url('/'));
+            ->markdown('emails.document-rejected', [
+                'applicantName' => $notifiable->name,
+                'documentTypeName' => $this->document->documentType->name ?? 'document',
+                'trackingNumber' => $trackingNumber,
+                'rejectionReason' => $this->reason,
+                'applicationUrl' => $applicationUrl,
+            ]);
     }
 
     public function toArray(object $notifiable): array
@@ -50,6 +54,7 @@ class DocumentRejectedNotification extends Notification implements ShouldQueue
             'type' => 'document_rejected',
             'application_document_id' => $this->document->ulid,
             'visa_application_id' => $this->document->visa_application_id,
+            'tracking_number' => $this->document->visaApplication?->tracking_number,
             'document_type' => $this->document->documentType->name ?? null,
             'reason' => $this->reason,
             'message' => 'Your document has been rejected: '.$this->reason,

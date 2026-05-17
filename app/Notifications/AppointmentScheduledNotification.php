@@ -33,21 +33,16 @@ class AppointmentScheduledNotification extends Notification implements ShouldQue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $mail = (new MailMessage)
+        return (new MailMessage)
             ->subject('Appointment scheduled for your visa application')
-            ->greeting('Dear '.$notifiable->name.',')
-            ->line('An appointment has been scheduled for your application ('.$this->application->tracking_number.').')
-            ->line('**Date & Time:** '.$this->appointment->appointment_at->format('l, F j, Y \a\t g:i A'));
-
-        if ($this->appointment->location) {
-            $mail->line('**Location:** '.$this->appointment->location);
-        }
-
-        if ($this->appointment->instructions) {
-            $mail->line('**Instructions:** '.$this->appointment->instructions);
-        }
-
-        return $mail->action('View Application', url('/'));
+            ->markdown('emails.appointment-scheduled', [
+                'applicantName' => $notifiable->name,
+                'trackingNumber' => $this->application->tracking_number,
+                'appointmentAt' => $this->appointment->appointment_at->format('l, F j, Y \a\t g:i A'),
+                'location' => $this->appointment->location,
+                'instructions' => $this->appointment->instructions,
+                'applicationUrl' => route('applications.wizard', $this->application->tracking_number),
+            ]);
     }
 
     public function toArray(object $notifiable): array

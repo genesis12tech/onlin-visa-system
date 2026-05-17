@@ -32,10 +32,12 @@ class ApplicationSubmittedNotification extends Notification implements ShouldQue
     {
         return (new MailMessage)
             ->subject('Your visa application has been received')
-            ->greeting('Dear '.$notifiable->name.',')
-            ->line('We have received your visa application ('.$this->application->tracking_number.').')
-            ->line('Your application is now under review. We will notify you of any updates.')
-            ->action('Track Your Application', url('/'));
+            ->markdown('emails.application-submitted', [
+                'applicantName' => $notifiable->name,
+                'trackingNumber' => $this->application->tracking_number,
+                'submittedAt' => $this->application->submitted_at?->format('d M Y \a\t H:i') ?? now()->format('d M Y'),
+                'dashboardUrl' => route('dashboard'),
+            ]);
     }
 
     public function toArray(object $notifiable): array

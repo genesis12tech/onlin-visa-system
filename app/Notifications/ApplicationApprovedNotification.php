@@ -32,13 +32,13 @@ class ApplicationApprovedNotification extends Notification implements ShouldQueu
     {
         return (new MailMessage)
             ->subject('Your visa application has been approved')
-            ->greeting('Good news, '.$notifiable->name.'!')
-            ->line('Your visa application ('.$this->application->tracking_number.') has been approved.')
-            ->when(
-                $this->application->decision_reason,
-                fn ($m) => $m->line('Note: '.$this->application->decision_reason)
-            )
-            ->action('View Application', url('/'));
+            ->markdown('emails.application-approved', [
+                'applicantName' => $notifiable->name,
+                'trackingNumber' => $this->application->tracking_number,
+                'decisionAt' => $this->application->decision_at?->format('d M Y') ?? now()->format('d M Y'),
+                'decisionReason' => $this->application->decision_reason,
+                'dashboardUrl' => route('dashboard'),
+            ]);
     }
 
     public function toArray(object $notifiable): array

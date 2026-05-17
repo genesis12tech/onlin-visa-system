@@ -34,10 +34,12 @@ class AdditionalInfoRequestedNotification extends Notification implements Should
     {
         return (new MailMessage)
             ->subject('Additional information requested for your visa application')
-            ->greeting('Dear '.$notifiable->name.',')
-            ->line('Additional information is required for your application ('.$this->application->tracking_number.').')
-            ->line($this->message)
-            ->action('View Application', url('/'));
+            ->markdown('emails.additional-info-requested', [
+                'applicantName' => $notifiable->name,
+                'trackingNumber' => $this->application->tracking_number,
+                'officerMessage' => $this->message,
+                'applicationUrl' => route('applications.wizard', $this->application->tracking_number),
+            ]);
     }
 
     public function toArray(object $notifiable): array

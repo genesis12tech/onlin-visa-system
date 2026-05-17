@@ -32,13 +32,13 @@ class ApplicationRejectedNotification extends Notification implements ShouldQueu
     {
         return (new MailMessage)
             ->subject('Your visa application decision')
-            ->greeting('Dear '.$notifiable->name.',')
-            ->line('We regret to inform you that your visa application ('.$this->application->tracking_number.') has been rejected.')
-            ->when(
-                $this->application->decision_reason,
-                fn ($m) => $m->line('Reason: '.$this->application->decision_reason)
-            )
-            ->action('View Application', url('/'));
+            ->markdown('emails.application-rejected', [
+                'applicantName' => $notifiable->name,
+                'trackingNumber' => $this->application->tracking_number,
+                'decisionAt' => $this->application->decision_at?->format('d M Y') ?? now()->format('d M Y'),
+                'decisionReason' => $this->application->decision_reason,
+                'dashboardUrl' => route('dashboard'),
+            ]);
     }
 
     public function toArray(object $notifiable): array
