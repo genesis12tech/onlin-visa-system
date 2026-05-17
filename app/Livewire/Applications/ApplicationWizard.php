@@ -118,7 +118,7 @@ class ApplicationWizard extends Component
             return;
         }
 
-        $this->redirect(route('applications.wizard', $this->tracking));
+        $this->redirect(route('applications.pay', $this->tracking));
     }
 
     #[On('section-updated')]

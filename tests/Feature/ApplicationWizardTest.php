@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Applications\Actions\SubmitApplication;
 use App\Domain\Applications\Models\FormTemplate;
 use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Applications\Models\VisaType;
@@ -168,5 +169,18 @@ class ApplicationWizardTest extends TestCase
         Livewire::actingAs($this->user)
             ->test(ApplicationWizard::class, ['tracking' => $submitted->tracking_number])
             ->assertSee($submitted->tracking_number);
+    }
+
+    public function test_submit_redirects_to_pay_page(): void
+    {
+        $this->mock(SubmitApplication::class)
+            ->shouldReceive('execute')
+            ->once();
+
+        Livewire::actingAs($this->user)
+            ->test(ApplicationWizard::class, ['tracking' => $this->application->tracking_number])
+            ->set('onReviewStep', true)
+            ->call('submit')
+            ->assertRedirect(route('applications.pay', $this->application->tracking_number));
     }
 }
