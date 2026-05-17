@@ -6,6 +6,7 @@ use App\Domain\Documents\Actions\UploadDocumentVersion;
 use App\Domain\Documents\Enums\ScanStatus;
 use App\Domain\Documents\Models\ApplicationDocument;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
@@ -99,8 +100,28 @@ class DocumentUploadPanel extends Component
             ->orderBy('created_at')
             ->get();
 
+        $hasPendingScans = $documents->contains(
+            fn ($doc) => $doc->currentVersion?->scan_status === ScanStatus::Pending
+        );
+
+        if ($this->pollingActive && ! $hasPendingScans) {
+            $this->pollingActive = false;
+        }
+
+        $downloadUrls = $documents
+            ->filter(fn ($doc) => $doc->currentVersion?->scan_status === ScanStatus::Clean)
+            ->mapWithKeys(fn ($doc) => [
+                $doc->ulid => URL::temporarySignedRoute(
+                    'documents.download',
+                    now()->addMinutes(15),
+                    ['version' => $doc->currentVersion->ulid],
+                ),
+            ]);
+
         return view('livewire.applications.document-upload-panel', [
             'documents' => $documents,
+            'hasPendingScans' => $hasPendingScans,
+            'downloadUrls' => $downloadUrls,
         ]);
     }
 }

@@ -16,6 +16,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -171,6 +172,52 @@ class DocumentUploadPanelTest extends TestCase
             ->call('refreshDocuments')
             ->assertSet('pollingActive', false)
             ->assertSet('showCheckBackLater', true);
+    }
+
+    public function test_rejected_document_shows_rejection_reason_in_view(): void
+    {
+        [$user, $application, $docSlot] = $this->makeApplicantWithDraftAndSlot();
+
+        $docSlot->update([
+            'status' => DocumentStatus::Rejected,
+            'rejection_reason' => 'Photo is too dark',
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(DocumentUploadPanel::class, ['applicationUlid' => $application->ulid])
+            ->assertSee('Photo is too dark');
+    }
+
+    public function test_clean_document_renders_download_url(): void
+    {
+        Storage::fake('documents');
+
+        [$user, $application, $docSlot] = $this->makeApplicantWithDraftAndSlot();
+
+        $version = DocumentVersion::create([
+            'application_document_id' => $docSlot->ulid,
+            'storage_path' => 'documents/test.pdf',
+            'original_filename' => 'passport.pdf',
+            'mime_type' => 'application/pdf',
+            'file_size_bytes' => 1024,
+            'sha256_checksum' => hash('sha256', 'content'),
+            'scan_status' => ScanStatus::Clean,
+            'uploaded_by' => $user->id,
+            'created_at' => now(),
+        ]);
+
+        $docSlot->update([
+            'current_version_id' => $version->ulid,
+            'status' => DocumentStatus::Uploaded,
+        ]);
+
+        $component = Livewire::actingAs($user)
+            ->test(DocumentUploadPanel::class, ['applicationUlid' => $application->ulid]);
+
+        // The view data should include a download URL for this document slot
+        $downloadUrls = $component->viewData('downloadUrls');
+        $this->assertArrayHasKey($docSlot->ulid, $downloadUrls);
+        $this->assertStringContainsString('documents/'.$version->ulid.'/download', $downloadUrls[$docSlot->ulid]);
     }
 
     private function makeApplicantWithDraftAndSlot(): array
