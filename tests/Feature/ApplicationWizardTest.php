@@ -69,22 +69,24 @@ class ApplicationWizardTest extends TestCase
             ->assertSet('currentSectionIndex', 1);
     }
 
-    public function test_advance_on_last_section_goes_to_review(): void
+    public function test_advance_on_last_section_goes_to_documents_step(): void
     {
         Livewire::actingAs($this->user)
             ->test(ApplicationWizard::class, ['tracking' => $this->application->tracking_number])
             ->set('currentSectionIndex', 1) // last section (FormTemplateFactory has 2 sections)
             ->call('advance')
-            ->assertSet('onReviewStep', true);
+            ->assertSet('onDocumentsStep', true)
+            ->assertSet('onReviewStep', false);
     }
 
-    public function test_go_back_from_review_restores_last_section(): void
+    public function test_go_back_from_review_goes_to_documents_step(): void
     {
         Livewire::actingAs($this->user)
             ->test(ApplicationWizard::class, ['tracking' => $this->application->tracking_number])
             ->set('onReviewStep', true)
             ->call('goBack')
-            ->assertSet('onReviewStep', false);
+            ->assertSet('onReviewStep', false)
+            ->assertSet('onDocumentsStep', true);
     }
 
     public function test_dynamic_form_section_saves_answers(): void
@@ -131,6 +133,28 @@ class ApplicationWizardTest extends TestCase
         // employer_name should be visible when purpose is Business
         $component->set('answers.travel_purpose', 'Business');
         $this->assertTrue($component->get('visibleFields')['employer_name'] ?? false);
+    }
+
+    public function test_advance_from_documents_step_goes_to_review(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(ApplicationWizard::class, ['tracking' => $this->application->tracking_number])
+            ->set('onDocumentsStep', true)
+            ->call('advance')
+            ->assertSet('onReviewStep', true)
+            ->assertSet('onDocumentsStep', false);
+    }
+
+    public function test_go_back_from_documents_step_goes_to_last_form_section(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(ApplicationWizard::class, ['tracking' => $this->application->tracking_number])
+            ->set('currentSectionIndex', 1)
+            ->set('onDocumentsStep', true)
+            ->call('goBack')
+            ->assertSet('onDocumentsStep', false)
+            ->assertSet('onReviewStep', false)
+            ->assertSet('currentSectionIndex', 1);
     }
 
     public function test_submitted_application_shows_tracking_number(): void

@@ -40,15 +40,43 @@
         {{-- Progress indicator --}}
         @php
             $sections = $this->sections();
-            $totalSteps = count($sections) + 1; // +1 for review
-            $currentStep = $onReviewStep ? $totalSteps : $currentSectionIndex + 1;
-            $stepLabels = collect($sections)->pluck('title')->push('Review')->all();
+            $totalSteps = count($sections) + 2; // +1 Documents, +1 Review
+            $currentStep = match(true) {
+                $onReviewStep    => $totalSteps,
+                $onDocumentsStep => count($sections) + 1,
+                default          => $currentSectionIndex + 1,
+            };
+            $stepLabels = collect($sections)->pluck('title')->push('Documents')->push('Review')->all();
         @endphp
 
         <x-step-indicator :steps="$stepLabels" :current="$currentStep" />
 
+        {{-- Documents step --}}
+        @if($onDocumentsStep)
+            <div>
+                <x-card title="Upload your documents">
+                    <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                        Upload all required supporting documents before proceeding to review. Files are scanned automatically — required documents must be uploaded or scanning before you can submit.
+                    </p>
+                    @livewire(
+                        'applications.document-upload-panel',
+                        ['applicationUlid' => $application->ulid],
+                        key('documents-step')
+                    )
+                </x-card>
+
+                <div class="flex items-center justify-between mt-6">
+                    <x-button variant="secondary" wire:click="goBack">
+                        &larr; Back
+                    </x-button>
+                    <x-button wire:click="advance">
+                        Review application &rarr;
+                    </x-button>
+                </div>
+            </div>
+
         {{-- Review step --}}
-        @if($onReviewStep)
+        @elseif($onReviewStep)
             @php $canSubmit = $this->canSubmit(); @endphp
             <x-card title="Review your application">
                 <div class="space-y-6">
@@ -125,7 +153,7 @@
                     @if($currentSectionIndex < count($sections) - 1)
                         Next &rarr;
                     @else
-                        Review application &rarr;
+                        Documents &rarr;
                     @endif
                 </x-button>
             </div>

@@ -22,6 +22,8 @@ class ApplicationWizard extends Component
 
     public int $currentSectionIndex = 0;
 
+    public bool $onDocumentsStep = false;
+
     public bool $onReviewStep = false;
 
     public function mount(string $tracking): void
@@ -60,12 +62,19 @@ class ApplicationWizard extends Component
     {
         Gate::authorize('update', $this->application);
 
+        if ($this->onDocumentsStep) {
+            $this->onDocumentsStep = false;
+            $this->onReviewStep = true;
+
+            return;
+        }
+
         $lastIndex = count($this->sections()) - 1;
 
         if ($this->currentSectionIndex < $lastIndex) {
             $this->currentSectionIndex++;
         } else {
-            $this->onReviewStep = true;
+            $this->onDocumentsStep = true;
         }
     }
 
@@ -73,6 +82,9 @@ class ApplicationWizard extends Component
     {
         if ($this->onReviewStep) {
             $this->onReviewStep = false;
+            $this->onDocumentsStep = true;
+        } elseif ($this->onDocumentsStep) {
+            $this->onDocumentsStep = false;
         } elseif ($this->currentSectionIndex > 0) {
             $this->currentSectionIndex--;
         }
