@@ -21,8 +21,6 @@ class DynamicFormSection extends Component
     /** @var array<string, mixed> keyed by bare field_key */
     public array $answers = [];
 
-    public bool $saving = false;
-
     public bool $saved = false;
 
     /** @param array<string, mixed> $savedAnswers */
@@ -43,10 +41,10 @@ class DynamicFormSection extends Component
 
     public function autoSave(): void
     {
+        $this->saved = false;
+
         $application = VisaApplication::where('ulid', $this->applicationUlid)->firstOrFail();
         Gate::authorize('update', $application);
-
-        $this->saving = true;
 
         $visibleAnswers = [];
         foreach ($this->section['fields'] as $field) {
@@ -57,7 +55,6 @@ class DynamicFormSection extends Component
 
         UpdateApplicationSection::run($application, $this->section['key'], $visibleAnswers);
 
-        $this->saving = false;
         $this->saved = true;
 
         $this->dispatch('section-updated', sectionKey: $this->section['key'])->to(ApplicationWizard::class);
@@ -81,8 +78,12 @@ class DynamicFormSection extends Component
             return true;
         }
 
-        $conditionField = $field['condition']['field'];
-        $conditionValue = $field['condition']['equals'];
+        $conditionField = $field['condition']['field'] ?? null;
+        $conditionValue = $field['condition']['equals'] ?? null;
+
+        if ($conditionField === null) {
+            return true;
+        }
 
         return ($this->answers[$conditionField] ?? null) === $conditionValue;
     }

@@ -3,11 +3,11 @@
         <div class="space-y-5">
 
             {{-- Saved indicator --}}
-            @if($saving)
-                <div class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
-                    <i class="ti ti-loader-2 animate-spin"></i> Saving…
-                </div>
-            @elseif($saved)
+            <div wire:loading wire:target="autoSave" class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+                <i class="ti ti-loader-2 animate-spin"></i> Saving…
+            </div>
+
+            @if($saved)
                 <div
                     x-data="{ show: true }"
                     x-init="setTimeout(() => show = false, 2000)"
@@ -21,7 +21,6 @@
             @foreach($section['fields'] as $field)
                 @if($visibleFields[$field['key']])
                     @php
-                        $fieldName = "answers.{$field['key']}";
                         $isRequired = $field['required'] ?? false;
                         $label = $field['label'];
                     @endphp
