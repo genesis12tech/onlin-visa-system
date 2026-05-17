@@ -16,6 +16,7 @@
                     {{ config('app.name') }}
                 </a>
                 <div class="flex items-center gap-4">
+                    <livewire:dashboard.notification-bell />
                     <span class="text-sm text-gray-600 dark:text-gray-400">{{ auth()->user()->name }}</span>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
