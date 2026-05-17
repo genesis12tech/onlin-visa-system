@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Domain\Applications\Enums\ApplicationStatus;
 use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Documents\Enums\DocumentStatus;
+use App\Domain\Documents\Enums\ScanStatus;
 use App\Domain\Documents\Models\ApplicationDocument;
 use App\Domain\Documents\Models\DocumentType;
+use App\Domain\Documents\Models\DocumentVersion;
 use App\Domain\Identity\Models\ApplicantProfile;
 use App\Livewire\Applications\DocumentUploadPanel;
 use App\Models\User;
@@ -125,6 +127,50 @@ class DocumentUploadPanelTest extends TestCase
             ->call('selectDocument', $docSlot->ulid)
             ->set('pendingFile', UploadedFile::fake()->create('passport.pdf', 100, 'application/pdf'))
             ->assertSet('pollingActive', true);
+    }
+
+    public function test_refresh_documents_stops_polling_when_all_scans_complete(): void
+    {
+        Storage::fake('documents');
+        Queue::fake();
+
+        [$user, $application, $docSlot] = $this->makeApplicantWithDraftAndSlot();
+
+        // Upload a file so currentVersion exists with scan_status = pending
+        // (Queue::fake() prevents ScanDocumentVersionJob from running)
+        DocumentVersion::create([
+            'application_document_id' => $docSlot->ulid,
+            'storage_path' => 'documents/test.pdf',
+            'original_filename' => 'passport.pdf',
+            'mime_type' => 'application/pdf',
+            'file_size_bytes' => 1024,
+            'sha256_checksum' => hash('sha256', 'content'),
+            'scan_status' => ScanStatus::Clean,
+            'uploaded_by' => $user->id,
+            'created_at' => now(),
+        ]);
+
+        $docSlot->update(['current_version_id' => DocumentVersion::latest('created_at')->value('ulid')]);
+
+        Livewire::actingAs($user)
+            ->test(DocumentUploadPanel::class, ['applicationUlid' => $application->ulid])
+            ->set('pollingActive', true)
+            ->set('pollingStartedAt', now()->unix())
+            ->call('refreshDocuments')
+            ->assertSet('pollingActive', false);
+    }
+
+    public function test_refresh_documents_sets_show_check_back_later_after_timeout(): void
+    {
+        [$user, $application] = $this->makeApplicantWithDraftAndSlot();
+
+        Livewire::actingAs($user)
+            ->test(DocumentUploadPanel::class, ['applicationUlid' => $application->ulid])
+            ->set('pollingActive', true)
+            ->set('pollingStartedAt', now()->subMinutes(6)->unix()) // 6 minutes ago
+            ->call('refreshDocuments')
+            ->assertSet('pollingActive', false)
+            ->assertSet('showCheckBackLater', true);
     }
 
     private function makeApplicantWithDraftAndSlot(): array

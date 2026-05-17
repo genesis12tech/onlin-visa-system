@@ -3,6 +3,7 @@
 namespace App\Livewire\Applications;
 
 use App\Domain\Documents\Actions\UploadDocumentVersion;
+use App\Domain\Documents\Enums\ScanStatus;
 use App\Domain\Documents\Models\ApplicationDocument;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -71,6 +72,24 @@ class DocumentUploadPanel extends Component
 
         $this->pendingFile = null;
         $this->pendingDocumentUlid = '';
+    }
+
+    public function refreshDocuments(): void
+    {
+        if ($this->pollingStartedAt && now()->unix() - $this->pollingStartedAt > 300) {
+            $this->pollingActive = false;
+            $this->showCheckBackLater = true;
+
+            return;
+        }
+
+        $hasPendingScans = ApplicationDocument::where('visa_application_id', $this->applicationUlid)
+            ->whereHas('currentVersion', fn ($q) => $q->where('scan_status', ScanStatus::Pending->value))
+            ->exists();
+
+        if (! $hasPendingScans) {
+            $this->pollingActive = false;
+        }
     }
 
     public function render(): View
