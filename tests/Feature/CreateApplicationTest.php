@@ -126,6 +126,39 @@ class CreateApplicationTest extends TestCase
         $this->assertEquals(ApplicationStatus::Withdrawn, $application->fresh()->status);
     }
 
+    public function test_posting_inactive_visa_type_is_rejected(): void
+    {
+        $inactive = VisaType::factory()->inactive()->create(['country_id' => Country::factory()->create()->id]);
+
+        $this->actingAs($this->user)
+            ->post(route('applications.store'), ['visa_type_ulid' => $inactive->ulid])
+            ->assertRedirect()
+            ->assertSessionHasErrors('visa_type_ulid');
+    }
+
+    public function test_another_applicant_cannot_withdraw_someones_application(): void
+    {
+        $application = VisaApplication::factory()->create([
+            'applicant_profile_id' => $this->profile->ulid,
+            'status' => ApplicationStatus::Draft,
+        ]);
+
+        $country = Country::factory()->create();
+        $otherUser = User::factory()->create(['email_verified_at' => now()]);
+        $otherUser->assignRole('applicant');
+        ApplicantProfile::factory()->create([
+            'user_id' => $otherUser->id,
+            'nationality_id' => $country->id,
+            'country_of_residence_id' => $country->id,
+        ]);
+
+        $this->actingAs($otherUser)
+            ->post(route('applications.withdraw', $application->tracking_number))
+            ->assertForbidden();
+
+        $this->assertEquals(ApplicationStatus::Draft, $application->fresh()->status);
+    }
+
     public function test_guest_cannot_start_application(): void
     {
         $this->get(route('applications.start'))->assertRedirect(route('login'));

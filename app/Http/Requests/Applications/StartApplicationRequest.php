@@ -15,7 +15,7 @@ class StartApplicationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'visa_type_ulid' => ['required', 'string', 'exists:visa_types,ulid'],
+            'visa_type_ulid' => ['required', 'string', 'exists:visa_types,ulid,is_active,1'],
         ];
     }
 }

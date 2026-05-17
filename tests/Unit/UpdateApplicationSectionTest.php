@@ -78,4 +78,34 @@ class UpdateApplicationSectionTest extends TestCase
 
         $this->assertDatabaseCount('application_answers', 2);
     }
+
+    public function test_it_deletes_stale_hidden_field_answers(): void
+    {
+        $application = VisaApplication::factory()->create();
+
+        // User fills employer_name when type=Business
+        UpdateApplicationSection::run($application, 'travel_details', [
+            'travel_purpose' => 'Business',
+            'employer_name' => 'Acme Corp',
+        ]);
+
+        $this->assertDatabaseHas('application_answers', [
+            'visa_application_id' => $application->ulid,
+            'field_key' => 'travel_details.employer_name',
+        ]);
+
+        // User switches to Tourism — employer_name is now hidden and not in visible set
+        UpdateApplicationSection::run($application, 'travel_details', [
+            'travel_purpose' => 'Tourism',
+        ]);
+
+        $this->assertDatabaseMissing('application_answers', [
+            'visa_application_id' => $application->ulid,
+            'field_key' => 'travel_details.employer_name',
+        ]);
+        $this->assertDatabaseHas('application_answers', [
+            'visa_application_id' => $application->ulid,
+            'field_key' => 'travel_details.travel_purpose',
+        ]);
+    }
 }

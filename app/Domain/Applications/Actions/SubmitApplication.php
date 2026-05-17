@@ -17,6 +17,10 @@ class SubmitApplication
     public function execute(VisaApplication $application, User $actor): VisaApplication
     {
         DB::transaction(function () use ($application, $actor) {
+            if ($application->status !== ApplicationStatus::Draft) {
+                throw new \RuntimeException("Application is not in a submittable state: {$application->status->value}");
+            }
+
             $blockingDocExists = $application->documents()
                 ->whereIn('status', [
                     DocumentStatus::Pending->value,

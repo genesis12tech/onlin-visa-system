@@ -60,4 +60,18 @@ class SubmitApplicationSnapshotTest extends TestCase
             ApplicationSnapshot::where('visa_application_id', $application->ulid)->first()->snapshot_data['tracking_number']
         );
     }
+
+    public function test_submit_throws_when_application_is_not_draft(): void
+    {
+        Queue::fake();
+        Notification::fake();
+
+        $application = VisaApplication::factory()->submitted()->create();
+        $actor = User::factory()->create();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/not in a submittable state/');
+
+        app(SubmitApplication::class)->execute($application, $actor);
+    }
 }

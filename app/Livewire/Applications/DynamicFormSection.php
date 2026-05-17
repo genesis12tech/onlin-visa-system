@@ -4,6 +4,7 @@ namespace App\Livewire\Applications;
 
 use App\Domain\Applications\Actions\UpdateApplicationSection;
 use App\Domain\Applications\Models\VisaApplication;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
@@ -45,7 +46,12 @@ class DynamicFormSection extends Component
         $this->saved = false;
 
         $application = VisaApplication::where('ulid', $this->applicationUlid)->firstOrFail();
-        Gate::authorize('update', $application);
+
+        try {
+            Gate::authorize('update', $application);
+        } catch (AuthorizationException) {
+            return;
+        }
 
         $visibleAnswers = [];
         foreach ($this->section['fields'] as $field) {
