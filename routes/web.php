@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentDownloadController;
 use App\Http\Controllers\ExportDownloadController;
+use App\Http\Controllers\OfficerDocumentPreviewController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReceiptDownloadController;
 use App\Http\Controllers\StripeWebhookController;
@@ -78,6 +79,10 @@ Route::get('/', fn () => redirect()->route('dashboard'));
 // Document & export downloads
 Route::get('/documents/{version}/download', [DocumentDownloadController::class, 'download'])
     ->name('documents.download')
+    ->middleware(['auth', 'signed', 'throttle:document-download']);
+
+Route::get('/officer-documents/{version}/preview', [OfficerDocumentPreviewController::class, 'preview'])
+    ->name('officer.documents.preview')
     ->middleware(['auth', 'signed', 'throttle:document-download']);
 
 Route::get('/exports/{ulid}/download', [ExportDownloadController::class, 'download'])
