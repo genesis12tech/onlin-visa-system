@@ -53,6 +53,9 @@ class AppointmentScheduledNotification extends Notification implements ShouldQue
             'tracking_number' => $this->application->tracking_number,
             'appointment_at' => $this->appointment->appointment_at->toIso8601String(),
             'location' => $this->appointment->location,
+            'message' => 'Your appointment has been scheduled for '
+                .$this->appointment->appointment_at->format('d M Y \a\t g:i A')
+                .($this->appointment->location ? ' at '.$this->appointment->location : '').'.',
         ];
     }
 }

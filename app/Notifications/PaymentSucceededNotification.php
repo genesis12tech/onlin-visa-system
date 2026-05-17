@@ -51,8 +51,8 @@ class PaymentSucceededNotification extends Notification implements ShouldQueue
     {
         return [
             'type' => 'payment_succeeded',
-            'visa_application_id' => $this->payment->visaApplication->ulid ?? null,
-            'tracking_number' => $this->payment->visaApplication->tracking_number ?? null,
+            'visa_application_id' => $this->payment->visaApplication?->ulid,
+            'tracking_number' => $this->payment->visaApplication?->tracking_number,
             'invoice_number' => $this->invoice->invoice_number,
             'amount_total' => $this->payment->amount_total,
             'currency' => $this->payment->currency,
