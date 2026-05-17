@@ -64,8 +64,11 @@ class AdminDashboardWidgetsTest extends TestCase
         $queries = [];
         \DB::listen(fn ($q) => $queries[] = $q->sql);
 
-        Livewire::actingAs($admin)
+        $component = Livewire::actingAs($admin)
             ->test(StatsOverviewWidget::class);
+
+        // Guard: verify the widget actually rendered and returned stats (getStats was called)
+        $component->assertSee('Total Applications', escape: false);
 
         $tablesQueried = collect($queries)
             ->filter(fn ($sql) => str_contains(strtolower($sql), 'visa_applications'))

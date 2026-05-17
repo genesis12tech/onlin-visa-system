@@ -40,9 +40,10 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
                 ->sum('rejected_count');
 
             $decidedThisMonth = $approvedThisMonth + $rejectedThisMonth;
-            $rejectionRate = $decidedThisMonth > 0
-                ? round(($rejectedThisMonth / $decidedThisMonth) * 100, 1).'%'
-                : '0%';
+            $rejectionRateNumeric = $decidedThisMonth > 0
+                ? round(($rejectedThisMonth / $decidedThisMonth) * 100, 1)
+                : 0.0;
+            $rejectionRate = $rejectionRateNumeric.'%';
 
             $submittedDiff = $submittedThisMonth - $submittedLastMonth;
             $approvedDiff = $approvedThisMonth - $approvedLastMonth;
@@ -54,6 +55,7 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
                 'approved_month' => $approvedThisMonth,
                 'approved_trend' => ($approvedDiff >= 0 ? '+' : '').number_format($approvedDiff).' vs last month',
                 'rejection_rate' => $rejectionRate,
+                'rejection_rate_numeric' => $rejectionRateNumeric,
             ];
         });
 
@@ -64,7 +66,7 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
                 ->color('info'),
 
             Stat::make('Pending Review', number_format($stats['pending']))
-                ->description('In queue as of today')
+                ->description('In queue as of last aggregation')
                 ->color('warning'),
 
             Stat::make('Approved This Month', number_format($stats['approved_month']))
@@ -74,7 +76,11 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
 
             Stat::make('Rejection Rate', $stats['rejection_rate'])
                 ->description('Of decided applications this month')
-                ->color('success'),
+                ->color(match (true) {
+                    $stats['rejection_rate_numeric'] > 20 => 'danger',
+                    $stats['rejection_rate_numeric'] > 10 => 'warning',
+                    default => 'success',
+                }),
         ];
     }
 
