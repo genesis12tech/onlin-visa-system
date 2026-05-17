@@ -22,6 +22,7 @@ class VisaFee extends Model
         'effective_from',
         'effective_to',
         'is_active',
+        'is_priority',
     ];
 
     protected function casts(): array
@@ -31,6 +32,7 @@ class VisaFee extends Model
             'effective_from' => 'date',
             'effective_to' => 'date',
             'is_active' => 'boolean',
+            'is_priority' => 'boolean',
         ];
     }
 
