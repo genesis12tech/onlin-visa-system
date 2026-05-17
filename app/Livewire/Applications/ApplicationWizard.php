@@ -7,6 +7,7 @@ use App\Domain\Applications\Enums\ApplicationStatus;
 use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Documents\Enums\DocumentStatus;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -53,7 +54,7 @@ class ApplicationWizard extends Component
     {
         return $this->application->answers
             ->filter(fn ($a) => str_starts_with($a->field_key, "{$sectionKey}."))
-            ->keyBy(fn ($a) => str_after($a->field_key, "{$sectionKey}."))
+            ->keyBy(fn ($a) => Str::after($a->field_key, "{$sectionKey}."))
             ->map(fn ($a) => $a->value)
             ->toArray();
     }
