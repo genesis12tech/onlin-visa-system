@@ -4,6 +4,7 @@ namespace App\Domain\Applications\Actions;
 
 use App\Domain\Applications\Enums\ApplicationStatus;
 use App\Domain\Applications\Jobs\GenerateApplicationSummaryPdf;
+use App\Domain\Applications\Models\ApplicationSnapshot;
 use App\Domain\Applications\Models\ApplicationStatusHistory;
 use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Documents\Enums\DocumentStatus;
@@ -42,6 +43,20 @@ class SubmitApplication
                 'actor_id' => $actor->id,
                 'created_at' => now(),
             ]);
+
+            ApplicationSnapshot::firstOrCreate(
+                ['visa_application_id' => $application->ulid],
+                [
+                    'snapshot_data' => [
+                        'tracking_number' => $application->tracking_number,
+                        'visa_type' => $application->visaType?->toArray(),
+                        'form_template_id' => $application->form_template_id,
+                        'answers' => $application->answers()->get(['field_key', 'value'])->toArray(),
+                        'submitted_at' => now()->toISOString(),
+                    ],
+                    'created_at' => now(),
+                ],
+            );
         });
 
         $application->refresh();
