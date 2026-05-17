@@ -98,6 +98,43 @@ class VisaApplicationPolicyTest extends TestCase
         $this->assertTrue($this->applicant->can('withdraw', $submitted));
     }
 
+    public function test_applicant_can_withdraw_at_any_pre_decision_stage(): void
+    {
+        $preDecisionStatuses = [
+            ApplicationStatus::PaymentPending,
+            ApplicationStatus::PaymentCompleted,
+            ApplicationStatus::UnderReview,
+            ApplicationStatus::AdditionalInfoRequested,
+        ];
+
+        foreach ($preDecisionStatuses as $status) {
+            $app = VisaApplication::factory()->create([
+                'applicant_profile_id' => $this->profile->ulid,
+                'status' => $status,
+            ]);
+
+            $this->assertTrue(
+                $this->applicant->can('withdraw', $app),
+                "Expected applicant to be able to withdraw when status is {$status->value}",
+            );
+        }
+    }
+
+    public function test_applicant_cannot_withdraw_post_decision_application(): void
+    {
+        foreach ([ApplicationStatus::Approved, ApplicationStatus::Rejected] as $status) {
+            $app = VisaApplication::factory()->create([
+                'applicant_profile_id' => $this->profile->ulid,
+                'status' => $status,
+            ]);
+
+            $this->assertFalse(
+                $this->applicant->can('withdraw', $app),
+                "Expected applicant to be unable to withdraw when status is {$status->value}",
+            );
+        }
+    }
+
     public function test_applicant_cannot_withdraw_approved_application(): void
     {
         $app = VisaApplication::factory()->create([

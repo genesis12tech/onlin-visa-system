@@ -46,7 +46,18 @@ class SubmitApplicationSnapshotTest extends TestCase
 
         app(SubmitApplication::class)->execute($application, $actor);
 
-        // Attempting to submit again should not create a second snapshot
+        // Attempting to firstOrCreate again with same key must return the same record
+        $firstSnapshot = ApplicationSnapshot::where('visa_application_id', $application->ulid)->first();
+
+        ApplicationSnapshot::firstOrCreate(
+            ['visa_application_id' => $application->ulid],
+            ['snapshot_data' => ['tracking_number' => 'should-not-overwrite'], 'created_at' => now()],
+        );
+
         $this->assertDatabaseCount('application_snapshots', 1);
+        $this->assertEquals(
+            $application->tracking_number,
+            ApplicationSnapshot::where('visa_application_id', $application->ulid)->first()->snapshot_data['tracking_number']
+        );
     }
 }

@@ -67,6 +67,9 @@ class VisaApplicationPolicy
             ApplicationStatus::Draft,
             ApplicationStatus::Submitted,
             ApplicationStatus::PaymentPending,
+            ApplicationStatus::PaymentCompleted,
+            ApplicationStatus::UnderReview,
+            ApplicationStatus::AdditionalInfoRequested,
         ], strict: true);
     }
 
