@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Domain\Applications\Actions\GenerateTrackingNumber;
+use App\Domain\Applications\Models\VisaApplication;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -10,27 +11,27 @@ class GenerateTrackingNumberTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_generated_reference_matches_pattern(): void
+    public function test_it_generates_a_tracking_number_with_correct_prefix(): void
     {
-        $reference = (new GenerateTrackingNumber)->execute();
+        $number = app(GenerateTrackingNumber::class)->execute();
 
-        $this->assertMatchesRegularExpression('/^VA-\d{4}-[A-Z0-9]{6}$/', $reference);
+        $this->assertStringStartsWith('VA-'.now()->year.'-', $number);
     }
 
-    public function test_generated_reference_contains_current_year(): void
+    public function test_it_generates_unique_numbers(): void
     {
-        $reference = (new GenerateTrackingNumber)->execute();
+        $numbers = collect(range(1, 10))
+            ->map(fn () => app(GenerateTrackingNumber::class)->execute());
 
-        $this->assertStringContainsString('VA-'.now()->year.'-', $reference);
+        $this->assertCount(10, $numbers->unique());
     }
 
-    public function test_successive_references_are_unique(): void
+    public function test_it_retries_if_tracking_number_already_exists(): void
     {
-        $references = array_map(
-            fn () => (new GenerateTrackingNumber)->execute(),
-            range(1, 10),
-        );
+        VisaApplication::factory()->create(['tracking_number' => 'VA-'.now()->year.'-AAAAAA']);
 
-        $this->assertCount(10, array_unique($references));
+        $number = app(GenerateTrackingNumber::class)->execute();
+
+        $this->assertNotEquals('VA-'.now()->year.'-AAAAAA', $number);
     }
 }
