@@ -160,6 +160,119 @@ class CalculateApplicationFeeTest extends TestCase
         (new CalculateApplicationFee)->execute($this->makeApplication($visaType));
     }
 
+    public function test_excludes_priority_fees_by_default(): void
+    {
+        $visaType = $this->makeVisaType();
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Application Fee',
+            'amount' => 5000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+            'is_priority' => false,
+        ]);
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Priority Processing',
+            'amount' => 3000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+            'is_priority' => true,
+        ]);
+
+        $result = (new CalculateApplicationFee)->execute($this->makeApplication($visaType));
+
+        $this->assertEquals(5000, $result['total_amount']);
+        $this->assertCount(1, $result['items']);
+    }
+
+    public function test_includes_priority_fees_when_priority_is_true(): void
+    {
+        $visaType = $this->makeVisaType();
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Application Fee',
+            'amount' => 5000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+            'is_priority' => false,
+        ]);
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Priority Processing',
+            'amount' => 3000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+            'is_priority' => true,
+        ]);
+
+        $result = (new CalculateApplicationFee)->execute($this->makeApplication($visaType), priority: true);
+
+        $this->assertEquals(8000, $result['total_amount']);
+        $this->assertCount(2, $result['items']);
+    }
+
+    public function test_has_priority_option_is_true_when_priority_fee_exists(): void
+    {
+        $visaType = $this->makeVisaType();
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Application Fee',
+            'amount' => 5000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+        ]);
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Priority Processing',
+            'amount' => 3000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+            'is_priority' => true,
+        ]);
+
+        $result = (new CalculateApplicationFee)->execute($this->makeApplication($visaType));
+
+        $this->assertTrue($result['has_priority_option']);
+    }
+
+    public function test_has_priority_option_is_false_when_no_priority_fee(): void
+    {
+        $visaType = $this->makeVisaType();
+
+        VisaFee::create([
+            'visa_type_id' => $visaType->ulid,
+            'name' => 'Application Fee',
+            'amount' => 5000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+        ]);
+
+        $result = (new CalculateApplicationFee)->execute($this->makeApplication($visaType));
+
+        $this->assertFalse($result['has_priority_option']);
+    }
+
     private function makeVisaType(): VisaType
     {
         $country = Country::create(['name' => 'Calcu', 'iso2' => 'CL', 'iso3' => 'CLC']);
