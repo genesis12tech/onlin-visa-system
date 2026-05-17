@@ -9,6 +9,7 @@ use App\Domain\Documents\Models\ApplicationDocument;
 use App\Domain\Documents\Policies\ApplicationDocumentPolicy;
 use App\Domain\Identity\Models\ApplicantProfile;
 use App\Domain\Identity\Models\Country;
+use App\Domain\Payments\Models\Invoice;
 use App\Domain\Payments\Models\Payment;
 use App\Domain\Payments\Models\VisaFee;
 use App\Domain\Payments\Policies\PaymentPolicy;
@@ -46,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(VisaApplication::class, VisaApplicationPolicy::class);
         Gate::policy(ApplicationDocument::class, ApplicationDocumentPolicy::class);
         Gate::policy(Payment::class, PaymentPolicy::class);
+        Gate::policy(Invoice::class, PaymentPolicy::class);
         Gate::policy(ApplicationExport::class, ApplicationExportPolicy::class);
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
 

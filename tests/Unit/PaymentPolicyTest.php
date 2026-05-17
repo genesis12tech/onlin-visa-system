@@ -2,6 +2,9 @@
 
 namespace Tests\Unit;
 
+use App\Domain\Applications\Models\VisaApplication;
+use App\Domain\Identity\Models\ApplicantProfile;
+use App\Domain\Payments\Models\Invoice;
 use App\Domain\Payments\Models\Payment;
 use App\Domain\Payments\Policies\PaymentPolicy;
 use App\Models\User;
@@ -69,5 +72,41 @@ class PaymentPolicyTest extends TestCase
         $user->assignRole('applicant');
 
         $this->assertFalse((new PaymentPolicy)->view($user, new Payment));
+    }
+
+    public function test_applicant_can_download_own_invoice_receipt(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        $profile = ApplicantProfile::factory()->create(['user_id' => $user->id]);
+        $application = VisaApplication::factory()->submitted()->create(['applicant_profile_id' => $profile->ulid]);
+        $payment = Payment::factory()->succeeded()->create(['visa_application_id' => $application->ulid]);
+        $invoice = Invoice::factory()->create(['payment_id' => $payment->ulid]);
+
+        $this->assertTrue((new PaymentPolicy)->downloadReceipt($user, $invoice));
+    }
+
+    public function test_applicant_cannot_download_other_applicants_invoice_receipt(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        $otherProfile = ApplicantProfile::factory()->create();
+        $application = VisaApplication::factory()->submitted()->create(['applicant_profile_id' => $otherProfile->ulid]);
+        $payment = Payment::factory()->succeeded()->create(['visa_application_id' => $application->ulid]);
+        $invoice = Invoice::factory()->create(['payment_id' => $payment->ulid]);
+
+        $this->assertFalse((new PaymentPolicy)->downloadReceipt($user, $invoice));
+    }
+
+    public function test_finance_officer_can_download_any_receipt(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('finance_officer');
+
+        $invoice = Invoice::factory()->create();
+
+        $this->assertTrue((new PaymentPolicy)->downloadReceipt($user, $invoice));
     }
 }

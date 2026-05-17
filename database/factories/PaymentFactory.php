@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Payments\Enums\PaymentStatus;
 use App\Domain\Payments\Models\Payment;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -13,7 +14,7 @@ class PaymentFactory extends Factory
     public function definition(): array
     {
         return [
-            'visa_application_id' => fake()->ulid(),
+            'visa_application_id' => VisaApplication::factory(),
             'status' => PaymentStatus::Pending,
             'provider' => 'stripe',
             'provider_payment_intent_id' => null,
