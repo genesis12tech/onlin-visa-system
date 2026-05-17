@@ -13,7 +13,7 @@ use Stripe\StripeClient;
 
 class CreateCheckoutSession
 {
-    public function execute(VisaApplication $application, User $actor): string
+    public function execute(VisaApplication $application, User $actor, bool $priority = false): string
     {
         if ($application->status !== ApplicationStatus::Submitted) {
             throw new \RuntimeException(
@@ -21,7 +21,7 @@ class CreateCheckoutSession
             );
         }
 
-        $feeData = (new CalculateApplicationFee)->execute($application);
+        $feeData = (new CalculateApplicationFee)->execute($application, $priority);
 
         $stripe = app(StripeClient::class);
 
@@ -38,8 +38,8 @@ class CreateCheckoutSession
             'payment_method_types' => ['card'],
             'line_items' => $lineItems,
             'mode' => 'payment',
-            'success_url' => config('app.url').'/payment/success?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => config('app.url').'/payment/cancel',
+            'success_url' => route('payment.success').'?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('applications.pay', $application->tracking_number),
             'metadata' => [
                 'visa_application_ulid' => $application->ulid,
             ],

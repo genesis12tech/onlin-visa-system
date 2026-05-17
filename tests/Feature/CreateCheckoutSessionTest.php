@@ -98,6 +98,34 @@ class CreateCheckoutSessionTest extends TestCase
         (new CreateCheckoutSession)->execute($this->application, $this->actor);
     }
 
+    public function test_creates_checkout_with_priority_fees_when_priority_enabled(): void
+    {
+        VisaFee::create([
+            'visa_type_id' => $this->application->visa_type_id,
+            'name' => 'Priority Processing',
+            'amount' => 5000,
+            'currency' => 'USD',
+            'applicant_type' => 'all',
+            'effective_from' => now()->subDay(),
+            'is_active' => true,
+            'is_priority' => true,
+        ]);
+
+        (new CreateCheckoutSession)->execute($this->application, $this->actor, priority: true);
+
+        $payment = Payment::where('visa_application_id', $this->application->ulid)->firstOrFail();
+
+        $this->assertDatabaseHas('payment_items', [
+            'payment_id' => $payment->ulid,
+            'description' => 'Application Fee',
+        ]);
+        $this->assertDatabaseHas('payment_items', [
+            'payment_id' => $payment->ulid,
+            'description' => 'Priority Processing',
+        ]);
+        $this->assertEquals(15000, $payment->amount_total);
+    }
+
     private function mockStripe(string $sessionId, string $sessionUrl): void
     {
         $mockSession = new \stdClass;
