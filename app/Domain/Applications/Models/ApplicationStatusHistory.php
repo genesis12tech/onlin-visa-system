@@ -21,6 +21,7 @@ class ApplicationStatusHistory extends Model
         'to_status',
         'actor_id',
         'reason',
+        'public_label',
         'created_at',
     ];
 
