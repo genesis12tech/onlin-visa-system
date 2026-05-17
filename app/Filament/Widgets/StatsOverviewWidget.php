@@ -2,8 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Domain\Applications\Enums\ApplicationStatus;
-use App\Domain\Applications\Models\VisaApplication;
+use App\Domain\Reporting\Models\DailyApplicationMetrics;
 use Filament\Widgets\StatsOverviewWidget as BaseStatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Carbon;
@@ -18,43 +17,40 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
     protected function getStats(): array
     {
         $stats = Cache::remember('dashboard.stats', 300, function () {
-            $total = VisaApplication::count();
-
-            $pending = VisaApplication::whereIn('status', [
-                ApplicationStatus::Submitted->value,
-                ApplicationStatus::UnderReview->value,
-                ApplicationStatus::DocsRequired->value,
-            ])->count();
-
             $thisMonth = Carbon::now()->startOfMonth();
             $lastMonth = Carbon::now()->subMonth()->startOfMonth();
+            $lastMonthEnd = $thisMonth;
 
-            $approvedThisMonth = VisaApplication::where('status', ApplicationStatus::Approved->value)
-                ->where('decision_at', '>=', $thisMonth)
-                ->count();
+            $submittedTotal = DailyApplicationMetrics::sum('submitted_count');
 
-            $approvedLastMonth = VisaApplication::where('status', ApplicationStatus::Approved->value)
-                ->whereBetween('decision_at', [$lastMonth, $thisMonth])
-                ->count();
+            $submittedThisMonth = DailyApplicationMetrics::where('date', '>=', $thisMonth)
+                ->sum('submitted_count');
+            $submittedLastMonth = DailyApplicationMetrics::whereBetween('date', [$lastMonth, $lastMonthEnd])
+                ->sum('submitted_count');
 
-            $submittedThisMonth = VisaApplication::where('submitted_at', '>=', $thisMonth)->count();
-            $submittedLastMonth = VisaApplication::whereBetween('submitted_at', [$lastMonth, $thisMonth])->count();
+            $pendingToday = DailyApplicationMetrics::whereDate('date', today())
+                ->sum('pending_count');
 
-            $rejectedThisMonth = VisaApplication::where('status', ApplicationStatus::Rejected->value)
-                ->where('decision_at', '>=', $thisMonth)
-                ->count();
+            $approvedThisMonth = DailyApplicationMetrics::where('date', '>=', $thisMonth)
+                ->sum('approved_count');
+            $approvedLastMonth = DailyApplicationMetrics::whereBetween('date', [$lastMonth, $lastMonthEnd])
+                ->sum('approved_count');
+
+            $rejectedThisMonth = DailyApplicationMetrics::where('date', '>=', $thisMonth)
+                ->sum('rejected_count');
+
             $decidedThisMonth = $approvedThisMonth + $rejectedThisMonth;
             $rejectionRate = $decidedThisMonth > 0
                 ? round(($rejectedThisMonth / $decidedThisMonth) * 100, 1).'%'
                 : '0%';
 
-            $totalDiff = $submittedThisMonth - $submittedLastMonth;
+            $submittedDiff = $submittedThisMonth - $submittedLastMonth;
             $approvedDiff = $approvedThisMonth - $approvedLastMonth;
 
             return [
-                'total' => $total,
-                'total_trend' => ($totalDiff >= 0 ? '+' : '').number_format($totalDiff).' vs last month',
-                'pending' => $pending,
+                'total' => $submittedTotal,
+                'total_trend' => ($submittedDiff >= 0 ? '+' : '').number_format($submittedDiff).' vs last month',
+                'pending' => $pendingToday,
                 'approved_month' => $approvedThisMonth,
                 'approved_trend' => ($approvedDiff >= 0 ? '+' : '').number_format($approvedDiff).' vs last month',
                 'rejection_rate' => $rejectionRate,
@@ -68,7 +64,7 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
                 ->color('info'),
 
             Stat::make('Pending Review', number_format($stats['pending']))
-                ->description('Submitted, in review, or awaiting docs')
+                ->description('In queue as of today')
                 ->color('warning'),
 
             Stat::make('Approved This Month', number_format($stats['approved_month']))
