@@ -41,24 +41,30 @@
 
     {{-- Result card --}}
     @if($result)
+        @php
+            $histories = collect($result['histories'])->map(fn ($h) => (object)[
+                'public_label' => $h['public_label'],
+                'created_at' => \Carbon\Carbon::parse($h['created_at']),
+            ]);
+        @endphp
         <x-card>
             <div class="flex items-start justify-between mb-4">
                 <div>
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-0.5">
-                        {{ $result->visaType->name }}
+                        {{ $result['visa_type_name'] }}
                     </p>
                     <p class="text-base font-semibold text-gray-900 dark:text-white font-mono">
-                        {{ $result->tracking_number }}
+                        {{ $result['tracking_number'] }}
                     </p>
                 </div>
-                <x-badge :status="$result->status" />
+                <x-badge :status="$result['status']" />
             </div>
 
             <div class="border-t border-gray-100 dark:border-gray-700 pt-4">
                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-3">
                     Status history
                 </p>
-                <x-status-timeline :histories="$result->statusHistories" :public-only="true" />
+                <x-status-timeline :histories="$histories" :public-only="true" />
             </div>
         </x-card>
     @endif

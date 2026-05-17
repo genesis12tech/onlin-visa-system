@@ -11,7 +11,7 @@ class PublicTrackingForm extends Component
 {
     public string $trackingNumber = '';
 
-    public ?VisaApplication $result = null;
+    public ?array $result = null;
 
     public bool $notFound = false;
 
@@ -45,7 +45,18 @@ class PublicTrackingForm extends Component
             return;
         }
 
-        $this->result = $application;
+        $this->result = [
+            'tracking_number' => $application->tracking_number,
+            'visa_type_name' => $application->visaType->name,
+            'status' => $application->status,
+            'histories' => $application->statusHistories
+                ->map(fn ($h) => [
+                    'public_label' => $h->public_label,
+                    'created_at' => $h->created_at->toIso8601String(),
+                ])
+                ->values()
+                ->all(),
+        ];
     }
 
     public function render(): View

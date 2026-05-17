@@ -39,7 +39,7 @@ class PublicTrackingFormTest extends TestCase
             ->set('trackingNumber', $application->tracking_number)
             ->call('submit')
             ->assertSet('notFound', false)
-            ->assertSet('result.ulid', $application->ulid)
+            ->assertSet('result.tracking_number', $application->tracking_number)
             ->assertSee('Application received');
     }
 
@@ -85,7 +85,7 @@ class PublicTrackingFormTest extends TestCase
 
         $result = $component->get('result');
         $this->assertNotNull($result);
-        $this->assertEmpty($result->statusHistories);
+        $this->assertEmpty($result['histories']);
     }
 
     public function test_tracking_page_is_publicly_accessible(): void
