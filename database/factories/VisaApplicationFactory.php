@@ -8,7 +8,6 @@ use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Applications\Models\VisaType;
 use App\Domain\Identity\Models\ApplicantProfile;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 
 /**
  * @extends Factory<VisaApplication>
@@ -20,7 +19,7 @@ class VisaApplicationFactory extends Factory
     public function definition(): array
     {
         return [
-            'tracking_number' => 'VA-'.now()->year.'-'.strtoupper(Str::random(6)),
+            'tracking_number' => 'VA-'.now()->year.'-'.strtoupper(fake()->unique()->lexify('??????')),
             'applicant_profile_id' => ApplicantProfile::factory(),
             'visa_type_id' => VisaType::factory(),
             'form_template_id' => FormTemplate::factory(),
@@ -35,7 +34,7 @@ class VisaApplicationFactory extends Factory
 
     public function submitted(): static
     {
-        return $this->state([
+        return $this->state(fn () => [
             'status' => ApplicationStatus::Submitted,
             'submitted_at' => now(),
         ]);
@@ -43,6 +42,6 @@ class VisaApplicationFactory extends Factory
 
     public function withdrawn(): static
     {
-        return $this->state(['status' => ApplicationStatus::Withdrawn]);
+        return $this->state(fn () => ['status' => ApplicationStatus::Withdrawn]);
     }
 }
