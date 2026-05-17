@@ -47,7 +47,8 @@ class OfficerPerformanceWidget extends BaseTableWidget
                     ->color('danger'),
 
                 TextColumn::make('avg_review_hours')
-                    ->label('Avg Hours')
+                    ->label('Avg Hrs/Day')
+                    ->description('Average review hours per working day')
                     ->formatStateUsing(fn ($state): string => $state !== null ? round((float) $state, 1).'h' : '—'),
             ])
             ->paginated(false);
