@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Applications\ApplicationController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\MfaChallengeController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\DocumentDownloadController;
 use App\Http\Controllers\ExportDownloadController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureProfileComplete;
+use App\Livewire\Applications\ApplicationWizard;
 use App\Livewire\Profile\SetupWizard;
 use Illuminate\Support\Facades\Route;
 
@@ -53,6 +55,12 @@ Route::middleware('auth')->group(function () {
     // Protected applicant area — requires verified email AND complete profile
     Route::middleware(['verified', EnsureProfileComplete::class])->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+        // Applications
+        Route::get('/applications/start', [ApplicationController::class, 'start'])->name('applications.start');
+        Route::post('/applications', [ApplicationController::class, 'store'])->name('applications.store');
+        Route::get('/applications/{tracking}', ApplicationWizard::class)->name('applications.wizard');
+        Route::post('/applications/{tracking}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');
     });
 });
 
