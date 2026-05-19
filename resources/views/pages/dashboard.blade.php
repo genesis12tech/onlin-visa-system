@@ -15,6 +15,32 @@
             </x-button>
         </div>
 
+        {{-- Action required --}}
+        @if($actionRequired->isNotEmpty())
+            <div class="space-y-3">
+                <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Needs your attention
+                </h2>
+                @foreach($actionRequired as $app)
+                    <a href="{{ route('applications.wizard', $app->tracking_number) }}"
+                       class="flex items-center gap-4 p-4 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/10 hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors">
+                        <span class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-800/40">
+                            <i class="ti ti-alert-circle text-lg text-amber-600 dark:text-amber-400"></i>
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                                {{ $app->visaType->name }}
+                            </p>
+                            <p class="mt-0.5 text-xs text-amber-700 dark:text-amber-300">
+                                {{ $app->status->label() }} &middot; <span class="font-mono">{{ $app->tracking_number }}</span>
+                            </p>
+                        </div>
+                        <i class="ti ti-chevron-right flex-shrink-0 text-amber-500"></i>
+                    </a>
+                @endforeach
+            </div>
+        @endif
+
         {{-- Application list --}}
         @if($applications->isEmpty())
             <x-empty-state

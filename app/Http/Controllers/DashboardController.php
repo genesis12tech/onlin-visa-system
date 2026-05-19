@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Applications\Enums\ApplicationStatus;
 use App\Domain\Applications\Models\VisaApplication;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,6 +20,12 @@ class DashboardController extends Controller
                 ->get()
             : collect();
 
-        return view('pages.dashboard', compact('profile', 'applications'));
+        $actionRequired = $applications->filter(fn ($app) => in_array($app->status, [
+            ApplicationStatus::AdditionalInfoRequested,
+            ApplicationStatus::PaymentPending,
+            ApplicationStatus::DocsRequired,
+        ], strict: true));
+
+        return view('pages.dashboard', compact('profile', 'applications', 'actionRequired'));
     }
 }
