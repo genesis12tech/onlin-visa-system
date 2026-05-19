@@ -9,6 +9,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            SuperAdminSeeder::class,     // env-based super admin — production use
             CountrySeeder::class,        // reference data — no dependencies
             DocumentTypeSeeder::class,   // reference data — no dependencies
             VisaTypeSeeder::class,       // depends on countries + document types
