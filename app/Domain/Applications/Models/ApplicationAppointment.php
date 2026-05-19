@@ -2,6 +2,7 @@
 
 namespace App\Domain\Applications\Models;
 
+use App\Domain\Applications\Enums\AppointmentStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +19,7 @@ class ApplicationAppointment extends Model
         'created_by',
         'appointment_at',
         'location',
+        'status',
         'instructions',
         'confirmation_pdf_path',
     ];
@@ -26,6 +28,7 @@ class ApplicationAppointment extends Model
     {
         return [
             'appointment_at' => 'datetime',
+            'status' => AppointmentStatus::class,
         ];
     }
 
