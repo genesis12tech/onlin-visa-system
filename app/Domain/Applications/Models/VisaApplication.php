@@ -8,12 +8,14 @@ use App\Domain\Identity\Models\ApplicantProfile;
 use App\Domain\Payments\Models\Payment;
 use App\Models\User;
 use Database\Factories\VisaApplicationFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
@@ -128,5 +130,62 @@ class VisaApplication extends Model
     {
         return $this->hasOne(ApplicationAppointment::class, 'visa_application_id', 'ulid')
             ->latestOfMany('appointment_at');
+    }
+
+    public function scopeSlaBreached(Builder $query): Builder
+    {
+        return $this->applySlaScope(
+            $query,
+            isSqlite: DB::connection()->getDriverName() === 'sqlite',
+            condition: 'lt',
+        );
+    }
+
+    public function scopeSlaAtRisk(Builder $query): Builder
+    {
+        return $this->applySlaScope(
+            $query,
+            isSqlite: DB::connection()->getDriverName() === 'sqlite',
+            condition: 'between',
+        );
+    }
+
+    private function applySlaScope(Builder $query, bool $isSqlite, string $condition): Builder
+    {
+        $q = $query
+            ->select('visa_applications.*')
+            ->whereNull('visa_applications.decision_at')
+            ->whereNotNull('visa_applications.submitted_at')
+            ->join('visa_types', 'visa_applications.visa_type_id', '=', 'visa_types.ulid');
+
+        if ($isSqlite) {
+            $deadlineExpr = "datetime(visa_applications.submitted_at, '+' || visa_types.processing_days || ' days')";
+            $nowExpr = "datetime('now')";
+            $twoFromNow = "datetime('now', '+2 days')";
+        } else {
+            $deadlineExpr = 'DATE_ADD(visa_applications.submitted_at, INTERVAL visa_types.processing_days DAY)';
+            $nowExpr = 'NOW()';
+            $twoFromNow = 'DATE_ADD(NOW(), INTERVAL 2 DAY)';
+        }
+
+        if ($condition === 'lt') {
+            $q->whereRaw("{$deadlineExpr} < {$nowExpr}");
+        } else {
+            $q->whereRaw("{$deadlineExpr} BETWEEN {$nowExpr} AND {$twoFromNow}");
+        }
+
+        return $q;
+    }
+
+    public function getSlaRemainingDaysAttribute(): int
+    {
+        if ($this->decision_at || ! $this->submitted_at) {
+            return 0;
+        }
+
+        $processingDays = $this->visaType?->processing_days ?? 30;
+        $deadline = $this->submitted_at->copy()->addDays($processingDays);
+
+        return (int) now()->diffInDays($deadline, false);
     }
 }
