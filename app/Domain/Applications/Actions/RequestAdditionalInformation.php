@@ -82,9 +82,6 @@ class RequestAdditionalInformation
             $applicantUser->notify(new AdditionalInfoRequestedNotification($application, $message));
         }
 
-        // TODO(applicant-portal): fields_to_unlock and deadline_date are stored in the note metadata
-        // but the applicant portal UI for unlocking and resubmitting those fields is not yet built.
-
         return $application;
     }
 }

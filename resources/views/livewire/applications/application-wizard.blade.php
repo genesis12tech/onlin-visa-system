@@ -14,8 +14,16 @@
         <x-badge :status="$application->status" />
     </div>
 
-    {{-- Submitted state --}}
-    @if($application->status !== \App\Domain\Applications\Enums\ApplicationStatus::Draft)
+    {{-- Info request response state --}}
+    @if($application->status === \App\Domain\Applications\Enums\ApplicationStatus::AdditionalInfoRequested)
+        @livewire(
+            'applications.info-response-panel',
+            ['applicationUlid' => $application->ulid],
+            key('info-response-' . $application->ulid)
+        )
+
+    {{-- All other non-draft states --}}
+    @elseif($application->status !== \App\Domain\Applications\Enums\ApplicationStatus::Draft)
         <x-card>
             <div class="text-center py-8 space-y-4">
                 <div class="flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">

@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Domain\Applications\Actions\SubmitApplication;
+use App\Domain\Applications\Enums\ApplicationStatus;
+use App\Domain\Applications\Models\ApplicationNote;
 use App\Domain\Applications\Models\FormTemplate;
 use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Applications\Models\VisaType;
@@ -182,5 +184,33 @@ class ApplicationWizardTest extends TestCase
             ->set('onReviewStep', true)
             ->call('submit')
             ->assertRedirect(route('applications.pay', $this->application->tracking_number));
+    }
+
+    public function test_wizard_shows_info_response_panel_when_additional_info_requested(): void
+    {
+        $application = VisaApplication::factory()->create([
+            'applicant_profile_id' => $this->profile->ulid,
+            'visa_type_id' => $this->application->visa_type_id,
+            'form_template_id' => $this->application->form_template_id,
+            'status' => ApplicationStatus::AdditionalInfoRequested,
+        ]);
+
+        $officer = User::factory()->create();
+        ApplicationNote::create([
+            'visa_application_id' => $application->ulid,
+            'author_id' => $officer->id,
+            'body' => 'Please clarify your travel purpose.',
+            'is_visible_to_applicant' => true,
+            'metadata' => [
+                'fields_to_unlock' => ['travel_details.travel_purpose'],
+                'deadline_days' => 7,
+                'deadline_date' => '2026-06-01',
+            ],
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(ApplicationWizard::class, ['tracking' => $application->tracking_number])
+            ->assertSee('Please clarify your travel purpose.')
+            ->assertSee('2026-06-01');
     }
 }
