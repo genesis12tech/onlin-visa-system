@@ -62,6 +62,8 @@ class ApproveApplication
 
         $this->notifyApplicant($application);
 
+        // TODO(M6): GenerateDecisionLetterPdf job body not yet implemented — dispatched but handler is a stub.
+        // TODO(M6): Notify finance team of approval (NotifyFinanceTeam listener not wired).
         GenerateDecisionLetterPdf::dispatch($application->ulid)->onQueue('pdfs');
 
         return $application;

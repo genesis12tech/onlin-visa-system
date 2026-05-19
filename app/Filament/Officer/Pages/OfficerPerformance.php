@@ -27,6 +27,8 @@ class OfficerPerformance extends Page implements HasTable
 
     protected string $view = 'filament.officer.pages.officer-performance';
 
+    // TODO(M7): This page reads from officer_performance_metrics, populated nightly by GenerateDailyMetricsJob.
+    // The table will be empty until that job has run at least once.
     public function getSummary(): array
     {
         $metrics = OfficerPerformanceMetrics::where('officer_id', auth()->id())

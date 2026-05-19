@@ -8,6 +8,8 @@ use App\Domain\Applications\Models\VisaApplication;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
+// TODO(M5-deferred): Auto-assign logic (round-robin or workload-balanced) is not implemented.
+// Currently only manual assignment via the senior officer queue action is supported.
 class AssignApplicationToOfficer
 {
     public function execute(VisaApplication $application, User $officer, User $actor): VisaApplication

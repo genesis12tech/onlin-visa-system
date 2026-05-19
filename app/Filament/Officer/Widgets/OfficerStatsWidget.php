@@ -26,6 +26,8 @@ class OfficerStatsWidget extends BaseStatsOverviewWidget
             ->where('assigned_officer_id', $officerId)
             ->count();
 
+        // TODO(M7): OfficerPerformanceMetrics is populated by GenerateDailyMetricsJob (nightly).
+        // Stats show 0 until that job runs for the first time.
         $metrics = OfficerPerformanceMetrics::where('officer_id', $officerId)
             ->where('date', '>=', Carbon::now()->startOfMonth())
             ->get();

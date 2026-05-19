@@ -58,6 +58,7 @@ class ScheduleAppointment
             $applicantUser->notify(new AppointmentScheduledNotification($application, $appointment));
         }
 
+        // TODO(M6): GenerateAppointmentConfirmationPdf job body not yet implemented — dispatched but handler is a stub.
         GenerateAppointmentConfirmationPdf::dispatch($appointment->ulid)->onQueue('pdfs');
 
         return $appointment;

@@ -64,6 +64,7 @@ class RejectApplication
             $applicantUser->notify(new ApplicationRejectedNotification($application));
         }
 
+        // TODO(M6): GenerateDecisionLetterPdf job body not yet implemented — dispatched but handler is a stub.
         GenerateDecisionLetterPdf::dispatch($application->ulid)->onQueue('pdfs');
 
         return $application;
