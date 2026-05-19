@@ -73,6 +73,13 @@ class VisaApplicationPolicy
         ], strict: true);
     }
 
+    public function respondToInfoRequest(User $user, VisaApplication $application): bool
+    {
+        return $user->hasRole('applicant')
+            && $user->applicantProfile?->ulid === $application->applicant_profile_id
+            && $application->status === ApplicationStatus::AdditionalInfoRequested;
+    }
+
     public function approve(User $user, VisaApplication $application): bool
     {
         if (! $user->hasAnyRole(['super_admin', 'admin', 'senior_officer', 'case_officer'])) {
