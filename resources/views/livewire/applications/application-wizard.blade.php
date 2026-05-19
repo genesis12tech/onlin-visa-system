@@ -24,26 +24,11 @@
 
     {{-- All other non-draft states --}}
     @elseif($application->status !== \App\Domain\Applications\Enums\ApplicationStatus::Draft)
-        <x-card>
-            <div class="text-center py-8 space-y-4">
-                <div class="flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                    <i class="ti ti-circle-check text-3xl text-green-600 dark:text-green-400"></i>
-                </div>
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Application submitted</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
-                    Your application has been received. Keep your tracking number safe — you'll need it to check your progress.
-                </p>
-                <div class="inline-block rounded-lg bg-gray-100 dark:bg-gray-700 px-6 py-3">
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Tracking number</p>
-                    <p class="text-xl font-mono font-bold text-gray-900 dark:text-white">{{ $application->tracking_number }}</p>
-                </div>
-                <div class="pt-4">
-                    <a href="{{ route('dashboard') }}" class="text-sm text-blue-600 hover:text-blue-500">
-                        &larr; Back to dashboard
-                    </a>
-                </div>
-            </div>
-        </x-card>
+        @livewire(
+            'applications.application-status-page',
+            ['applicationUlid' => $application->ulid],
+            key('status-page-' . $application->ulid)
+        )
     @else
         {{-- Progress indicator --}}
         @php
