@@ -13,17 +13,25 @@ use Illuminate\Support\Facades\DB;
 
 class ApproveApplication
 {
-    public function execute(VisaApplication $application, User $actor, ?string $reason = null): VisaApplication
-    {
+    public function execute(
+        VisaApplication $application,
+        User $actor,
+        ?string $reason = null,
+        ?string $validityPeriod = null,
+        ?string $entryType = null,
+        ?string $internalNotes = null,
+    ): VisaApplication {
         $this->guardDocumentReadiness($application);
 
         $fromStatus = $application->status->value;
 
-        DB::transaction(function () use ($application, $actor, $reason, $fromStatus) {
+        DB::transaction(function () use ($application, $actor, $reason, $validityPeriod, $entryType, $fromStatus) {
             $application->update([
                 'status' => ApplicationStatus::Approved,
                 'decision_at' => now(),
                 'decision_reason' => $reason,
+                'validity_period' => $validityPeriod,
+                'entry_type' => $entryType,
             ]);
 
             ApplicationStatusHistory::create([
@@ -43,6 +51,10 @@ class ApproveApplication
         });
 
         $application->refresh();
+
+        if ($internalNotes) {
+            (new AddReviewNote)->execute($application, $actor, $internalNotes, false);
+        }
 
         $this->notifyApplicant($application);
 

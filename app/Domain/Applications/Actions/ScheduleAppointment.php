@@ -19,13 +19,15 @@ class ScheduleAppointment
         Carbon $appointmentAt,
         ?string $location = null,
         ?string $instructions = null,
+        ?string $type = null,
     ): ApplicationAppointment {
         $fromStatus = $application->status->value;
 
-        $appointment = DB::transaction(function () use ($application, $actor, $appointmentAt, $location, $instructions, $fromStatus) {
+        $appointment = DB::transaction(function () use ($application, $actor, $appointmentAt, $location, $instructions, $type, $fromStatus) {
             $appointment = ApplicationAppointment::create([
                 'visa_application_id' => $application->ulid,
                 'created_by' => $actor->id,
+                'type' => $type,
                 'appointment_at' => $appointmentAt,
                 'location' => $location,
                 'instructions' => $instructions,
