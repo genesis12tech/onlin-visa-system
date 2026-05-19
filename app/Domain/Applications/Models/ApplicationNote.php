@@ -3,13 +3,22 @@
 namespace App\Domain\Applications\Models;
 
 use App\Models\User;
+use Database\Factories\ApplicationNoteFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ApplicationNote extends Model
 {
-    use HasUlids;
+    /** @use HasFactory<ApplicationNoteFactory> */
+    use HasFactory, HasUlids;
+
+    protected static function newFactory(): ApplicationNoteFactory
+    {
+        return ApplicationNoteFactory::new();
+    }
 
     protected $primaryKey = 'ulid';
 
@@ -37,5 +46,10 @@ class ApplicationNote extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    public function scopeVisibleToApplicant(Builder $query): Builder
+    {
+        return $query->where('is_visible_to_applicant', true);
     }
 }

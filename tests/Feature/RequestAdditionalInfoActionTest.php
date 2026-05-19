@@ -7,6 +7,9 @@ use App\Domain\Applications\Enums\ApplicationStatus;
 use App\Domain\Applications\Models\FormTemplate;
 use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Applications\Models\VisaType;
+use App\Domain\Documents\Enums\DocumentStatus;
+use App\Domain\Documents\Models\ApplicationDocument;
+use App\Domain\Documents\Models\DocumentType;
 use App\Domain\Identity\Models\ApplicantProfile;
 use App\Domain\Identity\Models\Country;
 use App\Models\User;
@@ -64,6 +67,124 @@ class RequestAdditionalInfoActionTest extends TestCase
 
         $applicantUser = $application->applicantProfile->user;
         Notification::assertSentTo($applicantUser, AdditionalInfoRequestedNotification::class);
+    }
+
+    public function test_identity_fields_cannot_be_unlocked(): void
+    {
+        $actor = User::factory()->create();
+        $application = $this->makeApplication();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/Identity fields cannot be unlocked/');
+
+        (new RequestAdditionalInformation)->execute(
+            $application,
+            $actor,
+            'Please correct your details.',
+            [],
+            ['personal.first_name', 'personal.passport_number'],
+        );
+    }
+
+    public function test_each_identity_field_is_individually_blocked(): void
+    {
+        $actor = User::factory()->create();
+        $application = VisaApplication::factory()->create(['status' => ApplicationStatus::UnderReview]);
+
+        $identityFields = [
+            'personal.first_name',
+            'personal.last_name',
+            'personal.date_of_birth',
+            'personal.nationality',
+            'personal.passport_number',
+        ];
+
+        foreach ($identityFields as $field) {
+            try {
+                (new RequestAdditionalInformation)->execute($application, $actor, 'msg', [], [$field]);
+                $this->fail("Expected InvalidArgumentException for field: {$field}");
+            } catch (\InvalidArgumentException $e) {
+                $this->assertStringContainsString($field, $e->getMessage());
+            }
+        }
+    }
+
+    public function test_non_identity_fields_can_be_unlocked(): void
+    {
+        $actor = User::factory()->create();
+        $application = VisaApplication::factory()->create(['status' => ApplicationStatus::UnderReview]);
+
+        // Must not throw
+        (new RequestAdditionalInformation)->execute(
+            $application,
+            $actor,
+            'Please update your employment details.',
+            [],
+            ['employment.employer_name', 'travel.purpose'],
+        );
+
+        $this->assertDatabaseHas('visa_applications', [
+            'ulid' => $application->ulid,
+            'status' => ApplicationStatus::AdditionalInfoRequested->value,
+        ]);
+    }
+
+    public function test_documents_to_resubmit_are_reset_to_pending(): void
+    {
+        $actor = User::factory()->create();
+        $application = VisaApplication::factory()->create(['status' => ApplicationStatus::UnderReview]);
+
+        $docType = DocumentType::create([
+            'name' => 'Passport',
+            'accepted_mime_types' => json_encode(['application/pdf']),
+            'max_size_kb' => 5000,
+        ]);
+        $document = ApplicationDocument::create([
+            'visa_application_id' => $application->ulid,
+            'document_type_id' => $docType->ulid,
+            'status' => DocumentStatus::Rejected,
+        ]);
+
+        (new RequestAdditionalInformation)->execute(
+            $application,
+            $actor,
+            'Please re-upload your passport scan.',
+            [$document->ulid],
+        );
+
+        $this->assertDatabaseHas('application_documents', [
+            'ulid' => $document->ulid,
+            'status' => DocumentStatus::Pending->value,
+        ]);
+    }
+
+    public function test_documents_not_in_list_are_not_reset(): void
+    {
+        $actor = User::factory()->create();
+        $application = VisaApplication::factory()->create(['status' => ApplicationStatus::UnderReview]);
+
+        $docType = DocumentType::create([
+            'name' => 'Bank Statement',
+            'accepted_mime_types' => json_encode(['application/pdf']),
+            'max_size_kb' => 5000,
+        ]);
+        $untouched = ApplicationDocument::create([
+            'visa_application_id' => $application->ulid,
+            'document_type_id' => $docType->ulid,
+            'status' => DocumentStatus::Accepted,
+        ]);
+
+        (new RequestAdditionalInformation)->execute(
+            $application,
+            $actor,
+            'Please re-upload your bank statement.',
+            [],
+        );
+
+        $this->assertDatabaseHas('application_documents', [
+            'ulid' => $untouched->ulid,
+            'status' => DocumentStatus::Accepted->value,
+        ]);
     }
 
     private function makeApplication(): VisaApplication

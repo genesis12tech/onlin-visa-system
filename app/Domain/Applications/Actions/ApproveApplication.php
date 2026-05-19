@@ -21,6 +21,10 @@ class ApproveApplication
         ?string $entryType = null,
         ?string $internalNotes = null,
     ): VisaApplication {
+        if (in_array($application->status, [ApplicationStatus::Approved, ApplicationStatus::Rejected], strict: true)) {
+            throw new \RuntimeException('Application has already been decided and cannot be approved again.');
+        }
+
         $this->guardDocumentReadiness($application);
 
         $fromStatus = $application->status->value;

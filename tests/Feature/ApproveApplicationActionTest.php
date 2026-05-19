@@ -4,13 +4,16 @@ namespace Tests\Feature;
 
 use App\Domain\Applications\Actions\ApproveApplication;
 use App\Domain\Applications\Enums\ApplicationStatus;
+use App\Domain\Applications\Models\ApplicationStatusHistory;
 use App\Domain\Applications\Models\FormTemplate;
 use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Applications\Models\VisaType;
 use App\Domain\Identity\Models\ApplicantProfile;
 use App\Domain\Identity\Models\Country;
 use App\Models\User;
+use App\Notifications\ApplicationApprovedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
@@ -62,6 +65,65 @@ class ApproveApplicationActionTest extends TestCase
         (new ApproveApplication)->execute($application, $actor);
 
         $this->assertNotNull($application->fresh()->decision_at);
+    }
+
+    public function test_approve_action_sends_notification_to_applicant(): void
+    {
+        Notification::fake();
+
+        $actor = User::factory()->create();
+        $application = $this->makeSubmittedApplication();
+
+        (new ApproveApplication)->execute($application, $actor);
+
+        $applicantUser = $application->applicantProfile->user;
+        Notification::assertSentTo($applicantUser, ApplicationApprovedNotification::class);
+    }
+
+    public function test_approve_action_throws_when_application_already_approved(): void
+    {
+        $actor = User::factory()->create();
+        $application = $this->makeSubmittedApplication();
+
+        (new ApproveApplication)->execute($application, $actor);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/already been decided/');
+
+        (new ApproveApplication)->execute($application->fresh(), $actor);
+    }
+
+    public function test_approve_action_throws_when_application_already_rejected(): void
+    {
+        $actor = User::factory()->create();
+        $application = VisaApplication::factory()->create([
+            'status' => ApplicationStatus::Rejected,
+            'decision_at' => now(),
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+
+        (new ApproveApplication)->execute($application, $actor);
+    }
+
+    public function test_double_approval_does_not_create_second_status_history_entry(): void
+    {
+        $actor = User::factory()->create();
+        $application = $this->makeSubmittedApplication();
+
+        (new ApproveApplication)->execute($application, $actor);
+
+        try {
+            (new ApproveApplication)->execute($application->fresh(), $actor);
+        } catch (\RuntimeException) {
+            // expected
+        }
+
+        $historyCount = ApplicationStatusHistory::where('visa_application_id', $application->ulid)
+            ->where('to_status', ApplicationStatus::Approved->value)
+            ->count();
+
+        $this->assertEquals(1, $historyCount);
     }
 
     private function makeSubmittedApplication(): VisaApplication
