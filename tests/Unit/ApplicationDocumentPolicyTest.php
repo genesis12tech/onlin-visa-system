@@ -88,20 +88,20 @@ class ApplicationDocumentPolicyTest extends TestCase
         $this->assertFalse($this->policy->upload($otherUser, $docSlot));
     }
 
-    public function test_document_verifier_can_accept_document(): void
+    public function test_document_verifier_can_accept_document_on_assigned_application(): void
     {
-        [$docSlot] = $this->makeDocumentForUser();
         $verifier = User::factory()->create();
         $verifier->assignRole('document_verifier');
+        [$docSlot] = $this->makeDocumentForUser(assignedOfficerId: $verifier->id);
 
         $this->assertTrue($this->policy->accept($verifier, $docSlot));
     }
 
-    public function test_document_verifier_can_reject_document(): void
+    public function test_document_verifier_can_reject_document_on_assigned_application(): void
     {
-        [$docSlot] = $this->makeDocumentForUser();
         $verifier = User::factory()->create();
         $verifier->assignRole('document_verifier');
+        [$docSlot] = $this->makeDocumentForUser(assignedOfficerId: $verifier->id);
 
         $this->assertTrue($this->policy->reject($verifier, $docSlot));
     }
@@ -113,7 +113,7 @@ class ApplicationDocumentPolicyTest extends TestCase
         $this->assertFalse($this->policy->accept($applicantUser, $docSlot));
     }
 
-    private function makeDocumentForUser(ApplicationStatus $status = ApplicationStatus::Submitted): array
+    private function makeDocumentForUser(ApplicationStatus $status = ApplicationStatus::Submitted, ?int $assignedOfficerId = null): array
     {
         $country = Country::create(['name' => 'Test', 'iso2' => 'TE', 'iso3' => 'TST']);
         $visaType = VisaType::create([
@@ -137,6 +137,7 @@ class ApplicationDocumentPolicyTest extends TestCase
             'visa_type_id' => $visaType->ulid,
             'form_template_id' => $form->ulid,
             'status' => $status,
+            'assigned_officer_id' => $assignedOfficerId,
         ]);
         $docType = DocumentType::factory()->create();
         $docSlot = ApplicationDocument::create([

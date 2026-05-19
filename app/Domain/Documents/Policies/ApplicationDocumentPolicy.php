@@ -10,6 +10,10 @@ class ApplicationDocumentPolicy
 {
     public function view(User $user, ApplicationDocument $document): bool
     {
+        if ($user->hasRole('finance_officer')) {
+            return false;
+        }
+
         if ($user->hasAnyRole(['super_admin', 'admin', 'senior_officer', 'case_officer', 'document_verifier', 'support_staff'])) {
             return true;
         }
@@ -31,11 +35,19 @@ class ApplicationDocumentPolicy
 
     public function accept(User $user, ApplicationDocument $document): bool
     {
-        return $user->hasAnyRole(['super_admin', 'admin', 'senior_officer', 'case_officer', 'document_verifier']);
+        if (! $user->hasAnyRole(['super_admin', 'admin', 'senior_officer', 'case_officer', 'document_verifier'])) {
+            return false;
+        }
+
+        if ($user->hasAnyRole(['case_officer', 'document_verifier'])) {
+            return $document->visaApplication->assigned_officer_id === $user->id;
+        }
+
+        return true;
     }
 
     public function reject(User $user, ApplicationDocument $document): bool
     {
-        return $user->hasAnyRole(['super_admin', 'admin', 'senior_officer', 'case_officer', 'document_verifier']);
+        return $this->accept($user, $document);
     }
 }

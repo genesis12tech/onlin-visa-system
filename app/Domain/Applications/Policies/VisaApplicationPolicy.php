@@ -75,10 +75,31 @@ class VisaApplicationPolicy
 
     public function approve(User $user, VisaApplication $application): bool
     {
-        return $user->hasAnyRole(['super_admin', 'admin', 'senior_officer']);
+        if (! $user->hasAnyRole(['super_admin', 'admin', 'senior_officer', 'case_officer'])) {
+            return false;
+        }
+
+        if (! in_array($application->status, [
+            ApplicationStatus::UnderReview,
+            ApplicationStatus::DocsRequired,
+            ApplicationStatus::AdditionalInfoRequested,
+        ], strict: true)) {
+            return false;
+        }
+
+        if ($user->hasRole('case_officer')) {
+            return $application->assigned_officer_id === $user->id;
+        }
+
+        return true;
     }
 
     public function reject(User $user, VisaApplication $application): bool
+    {
+        return $this->approve($user, $application);
+    }
+
+    public function reassign(User $user, VisaApplication $application): bool
     {
         return $user->hasAnyRole(['super_admin', 'admin', 'senior_officer']);
     }
