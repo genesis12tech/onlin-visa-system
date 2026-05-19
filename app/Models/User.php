@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Domain\Identity\Enums\UserStatus;
 use App\Domain\Identity\Models\ApplicantProfile;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
@@ -28,6 +29,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'email',
         'password',
         'two_factor_enabled',
+        'status',
     ];
 
     /**
@@ -51,6 +53,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_enabled' => 'boolean',
+            'status' => UserStatus::class,
         ];
     }
 
