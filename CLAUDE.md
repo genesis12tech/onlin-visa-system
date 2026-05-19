@@ -30,6 +30,17 @@ Read the following to get the full features of the project:
 -@features/officer-review.md
 -@features/reporting.md
 
+## Milestone Checklist
+
+- ☑ M0 — Foundation (Laravel, Filament, auth, roles, base structure)
+- ☑ M1 — Identity, roles, base admin panel
+- ☑ M2 — Application workflow (submission, status machine, snapshots)
+- ☑ M3 — Documents (upload, versioning, virus scan, verification)
+- ☑ M4 — Payments (Stripe, webhooks, invoices)
+- ☑ M5 — Officer panel (queue, review, approve/reject, SLA, notes)
+- ☐ M6 — Email templates & PDF generation (decision letters, appointment letters)
+- ☐ M7 — Reporting (metrics aggregation, exports, dashboards)
+
 ## Commands
 
 ```bash
