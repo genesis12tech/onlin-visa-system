@@ -17,39 +17,42 @@ class SubmitInfoResponse
             throw new \RuntimeException('Application is not awaiting an info response.');
         }
 
-        $infoNote = $application->notes()
-            ->where('is_visible_to_applicant', true)
-            ->whereNotNull('metadata')
-            ->latest()
-            ->first();
-
-        $fieldsToUnlock = $infoNote?->metadata['fields_to_unlock'] ?? [];
-
-        foreach ($fieldsToUnlock as $fullFieldKey) {
-            $answered = $application->answers()
-                ->where('field_key', $fullFieldKey)
-                ->exists();
-
-            if (! $answered) {
-                throw new \RuntimeException('Please fill in all requested fields before submitting your response.');
-            }
-        }
-
-        $hasBlockingDocs = $application->documents()
-            ->whereIn('status', [
-                DocumentStatus::Pending->value,
-                DocumentStatus::Rejected->value,
-                DocumentStatus::Infected->value,
-            ])
-            ->exists();
-
-        if ($hasBlockingDocs) {
-            throw new \RuntimeException('All requested documents must be uploaded and accepted before submitting your response.');
-        }
-
         $fromStatus = $application->status->value;
 
         DB::transaction(function () use ($application, $actor, $fromStatus) {
+            $infoNote = $application->notes()
+                ->where('is_visible_to_applicant', true)
+                ->whereNotNull('metadata')
+                ->latest()
+                ->first();
+
+            $fieldsToUnlock = $infoNote?->metadata['fields_to_unlock'] ?? [];
+
+            if (! empty($fieldsToUnlock)) {
+                $answeredKeys = $application->answers()
+                    ->whereIn('field_key', $fieldsToUnlock)
+                    ->pluck('field_key')
+                    ->all();
+
+                foreach ($fieldsToUnlock as $key) {
+                    if (! in_array($key, $answeredKeys, true)) {
+                        throw new \RuntimeException('Please fill in all requested fields before submitting your response.');
+                    }
+                }
+            }
+
+            $hasBlockingDocs = $application->documents()
+                ->whereIn('status', [
+                    DocumentStatus::Pending->value,
+                    DocumentStatus::Rejected->value,
+                    DocumentStatus::Infected->value,
+                ])
+                ->exists();
+
+            if ($hasBlockingDocs) {
+                throw new \RuntimeException('All requested documents must be uploaded and accepted before submitting your response.');
+            }
+
             $application->update(['status' => ApplicationStatus::UnderReview]);
 
             ApplicationStatusHistory::create([

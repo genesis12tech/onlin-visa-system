@@ -30,7 +30,7 @@ class SubmitInfoResponseTest extends TestCase
 
     public function test_transitions_status_to_under_review(): void
     {
-        ['application' => $application, 'actor' => $actor] = $this->makeInfoRequestedApplication(
+        ['application' => $application, 'officer' => $actor] = $this->makeInfoRequestedApplication(
             fieldsToUnlock: ['travel_details.travel_purpose'],
         );
 
@@ -50,7 +50,7 @@ class SubmitInfoResponseTest extends TestCase
 
     public function test_records_status_history(): void
     {
-        ['application' => $application, 'actor' => $actor] = $this->makeInfoRequestedApplication(
+        ['application' => $application, 'officer' => $actor] = $this->makeInfoRequestedApplication(
             fieldsToUnlock: ['travel_details.travel_purpose'],
         );
 
@@ -70,6 +70,28 @@ class SubmitInfoResponseTest extends TestCase
         ]);
     }
 
+    public function test_logs_activity_on_success(): void
+    {
+        ['application' => $application, 'officer' => $actor] = $this->makeInfoRequestedApplication(
+            fieldsToUnlock: ['travel_details.travel_purpose'],
+        );
+
+        ApplicationAnswer::create([
+            'visa_application_id' => $application->ulid,
+            'field_key' => 'travel_details.travel_purpose',
+            'value' => 'Tourism',
+        ]);
+
+        (new SubmitInfoResponse)->execute($application, $actor);
+
+        $this->assertDatabaseHas('activity_log', [
+            'subject_type' => VisaApplication::class,
+            'subject_id' => $application->ulid,
+            'causer_id' => $actor->id,
+            'description' => 'status_changed',
+        ]);
+    }
+
     public function test_throws_if_application_not_in_additional_info_requested_status(): void
     {
         $application = VisaApplication::factory()->submitted()->create();
@@ -83,7 +105,7 @@ class SubmitInfoResponseTest extends TestCase
 
     public function test_throws_if_unlocked_field_has_no_answer(): void
     {
-        ['application' => $application, 'actor' => $actor] = $this->makeInfoRequestedApplication(
+        ['application' => $application, 'officer' => $actor] = $this->makeInfoRequestedApplication(
             fieldsToUnlock: ['travel_details.travel_purpose', 'background.previous_visa_refusal'],
         );
 
@@ -102,7 +124,7 @@ class SubmitInfoResponseTest extends TestCase
 
     public function test_throws_if_blocking_document_remains(): void
     {
-        ['application' => $application, 'actor' => $actor] = $this->makeInfoRequestedApplication(
+        ['application' => $application, 'officer' => $actor] = $this->makeInfoRequestedApplication(
             fieldsToUnlock: ['travel_details.travel_purpose'],
         );
 
@@ -127,7 +149,7 @@ class SubmitInfoResponseTest extends TestCase
 
     public function test_succeeds_when_no_fields_to_unlock_but_docs_all_accepted(): void
     {
-        ['application' => $application, 'actor' => $actor] = $this->makeInfoRequestedApplication(
+        ['application' => $application, 'officer' => $actor] = $this->makeInfoRequestedApplication(
             fieldsToUnlock: [],
         );
 
@@ -177,17 +199,17 @@ class SubmitInfoResponseTest extends TestCase
         $this->assertFalse($actor->can('respondToInfoRequest', $otherApplication));
     }
 
-    /** @return array{application: VisaApplication, actor: User} */
+    /** @return array{application: VisaApplication, officer: User} */
     private function makeInfoRequestedApplication(array $fieldsToUnlock): array
     {
-        $actor = User::factory()->create();
+        $officer = User::factory()->create();
         $application = VisaApplication::factory()->create([
             'status' => ApplicationStatus::AdditionalInfoRequested,
         ]);
 
         ApplicationNote::create([
             'visa_application_id' => $application->ulid,
-            'author_id' => $actor->id,
+            'author_id' => $officer->id,
             'body' => 'Please provide the required information.',
             'is_visible_to_applicant' => true,
             'metadata' => [
@@ -197,6 +219,6 @@ class SubmitInfoResponseTest extends TestCase
             ],
         ]);
 
-        return compact('application', 'actor');
+        return compact('application', 'officer');
     }
 }
