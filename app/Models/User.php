@@ -61,7 +61,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     {
         return match ($panel->getId()) {
             'admin' => $this->hasAnyRole(['admin', 'super_admin']),
-            'officer' => $this->hasAnyRole(['case_officer', 'senior_officer', 'admin', 'super_admin']),
+            'officer' => $this->hasAnyRole(['case_officer', 'senior_officer', 'document_verifier', 'finance_officer', 'admin', 'super_admin']),
             default => false,
         };
     }
