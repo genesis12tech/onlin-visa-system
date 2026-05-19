@@ -39,7 +39,7 @@ Read the following to get the full features of the project:
 - ☑ M4 — Payments (Stripe, webhooks, invoices)
 - ☑ M5 — Officer panel (queue, review, approve/reject, SLA, notes)
 - ☑ M6 — Email templates & PDF generation (decision letters, appointment letters)
-- ☐ M7 — Reporting (metrics aggregation, exports, dashboards)
+- ☑ M7 — Reporting (metrics aggregation, exports, dashboards)
 
 ## Commands
 
