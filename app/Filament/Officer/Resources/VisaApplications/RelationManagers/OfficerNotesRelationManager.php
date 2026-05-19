@@ -2,8 +2,9 @@
 
 namespace App\Filament\Officer\Resources\VisaApplications\RelationManagers;
 
+use App\Domain\Applications\Actions\AddReviewNote;
+use App\Domain\Applications\Models\ApplicationNote;
 use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -59,15 +60,16 @@ class OfficerNotesRelationManager extends RelationManager
             ->filters([])
             ->headerActions([
                 CreateAction::make()
-                    ->mutateFormDataUsing(function (array $data): array {
-                        $data['author_id'] = auth()->id();
-
-                        return $data;
+                    ->using(function (array $data): ApplicationNote {
+                        return (new AddReviewNote)->execute(
+                            $this->getOwnerRecord(),
+                            auth()->user(),
+                            $data['body'],
+                            $data['is_visible_to_applicant'] ?? false,
+                        );
                     }),
             ])
-            ->recordActions([
-                DeleteAction::make(),
-            ])
+            ->recordActions([])
             ->toolbarActions([]);
     }
 }

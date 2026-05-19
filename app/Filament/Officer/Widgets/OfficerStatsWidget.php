@@ -2,6 +2,7 @@
 
 namespace App\Filament\Officer\Widgets;
 
+use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Reporting\Models\OfficerPerformanceMetrics;
 use Filament\Widgets\StatsOverviewWidget as BaseStatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -15,29 +16,39 @@ class OfficerStatsWidget extends BaseStatsOverviewWidget
 
     protected function getStats(): array
     {
-        $metrics = OfficerPerformanceMetrics::where('officer_id', auth()->id())
+        $officerId = auth()->id();
+
+        $assigned = VisaApplication::where('assigned_officer_id', $officerId)
+            ->whereNull('decision_at')
+            ->count();
+
+        $slaAtRisk = VisaApplication::slaAtRisk()
+            ->where('assigned_officer_id', $officerId)
+            ->count();
+
+        $metrics = OfficerPerformanceMetrics::where('officer_id', $officerId)
             ->where('date', '>=', Carbon::now()->startOfMonth())
             ->get();
 
-        $reviewed = $metrics->sum('reviewed_count');
-        $approved = $metrics->sum('approved_count');
-        $rejected = $metrics->sum('rejected_count');
+        $completed = $metrics->sum('reviewed_count');
         $avgHours = $metrics->avg('avg_review_hours');
 
         return [
-            Stat::make('Reviewed This Month', $reviewed)
+            Stat::make('Assigned', $assigned)
+                ->description('Applications in your queue')
                 ->color('info'),
 
-            Stat::make('Approved', $approved)
-                ->description('of '.$reviewed.' reviewed')
+            Stat::make('Completed (MTD)', $completed)
+                ->description('Reviews this month')
                 ->color('success'),
 
-            Stat::make('Rejected', $rejected)
-                ->color('danger'),
-
-            Stat::make('Avg Review Time', $avgHours !== null ? round($avgHours, 1).'h' : '—')
+            Stat::make('Avg. Turnaround', $avgHours !== null ? round($avgHours, 1).'h' : '—')
                 ->description('Per application this month')
                 ->color('gray'),
+
+            Stat::make('SLA at Risk', $slaAtRisk)
+                ->description('Due within 2 days')
+                ->color($slaAtRisk > 0 ? 'warning' : 'success'),
         ];
     }
 }
