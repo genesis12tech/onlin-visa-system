@@ -34,7 +34,10 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(StripeClient::class, fn () => new StripeClient(config('services.stripe.secret')));
+        $this->app->singleton(StripeClient::class, fn () => new StripeClient([
+            'api_key' => config('services.stripe.secret'),
+            'stripe_version' => '2026-04-22.dahlia',
+        ]));
     }
 
     public function boot(): void

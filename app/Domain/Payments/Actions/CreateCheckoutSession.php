@@ -34,27 +34,12 @@ class CreateCheckoutSession
             'quantity' => $item['quantity'],
         ])->values()->all();
 
-        $session = $stripe->checkout->sessions->create([
-            'payment_method_types' => ['card'],
-            'line_items' => $lineItems,
-            'mode' => 'payment',
-            'success_url' => route('payment.success').'?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('applications.pay', $application->tracking_number),
-            'metadata' => [
-                'visa_application_ulid' => $application->ulid,
-            ],
-        ]);
-
-        if (! $session->url) {
-            throw new \RuntimeException('Stripe did not return a checkout URL.');
-        }
-
-        DB::transaction(function () use ($application, $actor, $feeData, $session): void {
+        // Create the local payment record first so every Stripe session has a local counterpart
+        $payment = DB::transaction(function () use ($application, $feeData): Payment {
             $payment = Payment::create([
                 'visa_application_id' => $application->ulid,
                 'status' => PaymentStatus::Processing,
                 'provider' => 'stripe',
-                'provider_checkout_session_id' => $session->id,
                 'amount_subtotal' => $feeData['total_amount'],
                 'amount_total' => $feeData['total_amount'],
                 'currency' => $feeData['currency'],
@@ -69,6 +54,34 @@ class CreateCheckoutSession
                     'total_amount' => $item['total_amount'],
                 ]);
             }
+
+            return $payment;
+        });
+
+        try {
+            $session = $stripe->checkout->sessions->create(
+                [
+                    'line_items' => $lineItems,
+                    'mode' => 'payment',
+                    'success_url' => route('payment.success').'?session_id={CHECKOUT_SESSION_ID}',
+                    'cancel_url' => route('applications.pay', $application->tracking_number),
+                    'metadata' => [
+                        'visa_application_ulid' => $application->ulid,
+                    ],
+                ],
+                ['idempotencyKey' => 'checkout-'.$payment->ulid]
+            );
+        } catch (\Exception $e) {
+            $payment->update(['status' => PaymentStatus::Failed, 'failure_reason' => $e->getMessage()]);
+            throw $e;
+        }
+
+        if (! $session->url) {
+            throw new \RuntimeException('Stripe did not return a checkout URL.');
+        }
+
+        DB::transaction(function () use ($application, $actor, $payment, $session): void {
+            $payment->update(['provider_checkout_session_id' => $session->id]);
 
             $fromStatus = $application->status->value;
 

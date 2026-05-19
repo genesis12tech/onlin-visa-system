@@ -92,6 +92,15 @@ class CreateCheckoutSessionTest extends TestCase
     {
         $this->application->update(['status' => ApplicationStatus::Approved]);
 
+        // Override with a mock that expects no Stripe call
+        $mockSessions = Mockery::mock();
+        $mockSessions->shouldNotReceive('create');
+        $mockCheckout = new \stdClass;
+        $mockCheckout->sessions = $mockSessions;
+        $mockStripe = Mockery::mock(StripeClient::class);
+        $mockStripe->checkout = $mockCheckout;
+        $this->app->instance(StripeClient::class, $mockStripe);
+
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/Cannot initiate checkout/');
 
@@ -124,6 +133,66 @@ class CreateCheckoutSessionTest extends TestCase
             'description' => 'Priority Processing',
         ]);
         $this->assertEquals(15000, $payment->amount_total);
+    }
+
+    public function test_passes_idempotency_key_derived_from_payment_ulid(): void
+    {
+        $capturedOptions = [];
+
+        $mockSession = new \stdClass;
+        $mockSession->id = 'cs_test_mock123';
+        $mockSession->url = 'https://checkout.stripe.com/pay/cs_test_mock123';
+
+        $mockSessions = Mockery::mock();
+        $mockSessions->shouldReceive('create')
+            ->once()
+            ->andReturnUsing(function ($params, $options) use (&$capturedOptions, $mockSession) {
+                $capturedOptions = $options;
+
+                return $mockSession;
+            });
+
+        $mockCheckout = new \stdClass;
+        $mockCheckout->sessions = $mockSessions;
+        $mockStripe = Mockery::mock(StripeClient::class);
+        $mockStripe->checkout = $mockCheckout;
+        $this->app->instance(StripeClient::class, $mockStripe);
+
+        (new CreateCheckoutSession)->execute($this->application, $this->actor);
+
+        $payment = Payment::where('visa_application_id', $this->application->ulid)->firstOrFail();
+        $this->assertArrayHasKey('idempotencyKey', $capturedOptions);
+        $this->assertEquals('checkout-'.$payment->ulid, $capturedOptions['idempotencyKey']);
+    }
+
+    public function test_marks_payment_failed_and_preserves_submitted_status_when_stripe_throws(): void
+    {
+        $mockSessions = Mockery::mock();
+        $mockSessions->shouldReceive('create')
+            ->once()
+            ->andThrow(new \RuntimeException('Stripe connection failed'));
+
+        $mockCheckout = new \stdClass;
+        $mockCheckout->sessions = $mockSessions;
+        $mockStripe = Mockery::mock(StripeClient::class);
+        $mockStripe->checkout = $mockCheckout;
+        $this->app->instance(StripeClient::class, $mockStripe);
+
+        try {
+            (new CreateCheckoutSession)->execute($this->application, $this->actor);
+            $this->fail('Expected exception was not thrown');
+        } catch (\RuntimeException $e) {
+            $this->assertEquals('Stripe connection failed', $e->getMessage());
+        }
+
+        $this->assertDatabaseHas('payments', [
+            'visa_application_id' => $this->application->ulid,
+            'status' => 'failed',
+            'failure_reason' => 'Stripe connection failed',
+        ]);
+
+        $this->application->refresh();
+        $this->assertEquals(ApplicationStatus::Submitted, $this->application->status);
     }
 
     private function mockStripe(string $sessionId, string $sessionUrl): void
