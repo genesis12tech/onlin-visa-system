@@ -42,6 +42,8 @@ class VisaApplication extends Model
         'travel_date',
         'decision_at',
         'decision_reason',
+        'validity_period',
+        'entry_type',
         'decision_letter_pdf_path',
         'summary_pdf_path',
     ];

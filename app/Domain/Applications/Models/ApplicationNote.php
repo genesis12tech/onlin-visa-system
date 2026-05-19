@@ -18,12 +18,14 @@ class ApplicationNote extends Model
         'author_id',
         'body',
         'is_visible_to_applicant',
+        'metadata',
     ];
 
     protected function casts(): array
     {
         return [
             'is_visible_to_applicant' => 'boolean',
+            'metadata' => 'array',
         ];
     }
 

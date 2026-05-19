@@ -17,6 +17,7 @@ class ApplicationAppointment extends Model
     protected $fillable = [
         'visa_application_id',
         'created_by',
+        'type',
         'appointment_at',
         'location',
         'status',
