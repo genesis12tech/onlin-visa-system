@@ -22,32 +22,26 @@ class InfoResponsePanel extends Component
     {
         $this->applicationUlid = $applicationUlid;
 
-        $application = VisaApplication::with(['answers', 'notes'])
-            ->where('ulid', $applicationUlid)
-            ->firstOrFail();
-
-        foreach ($this->resolveFieldsToUnlock($application) as $fullKey) {
+        foreach ($this->resolveFieldsToUnlock() as $fullKey) {
             [$section, $field] = explode('.', $fullKey, 2);
-            $answer = $application->answers->firstWhere('field_key', $fullKey);
+            $answer = $this->getApplication()->answers->firstWhere('field_key', $fullKey);
             $this->answers[$section][$field] = $answer?->value;
         }
     }
 
-    public function updatedAnswers(string $key): void
+    public function updatedAnswers(mixed $value, string $key): void
     {
-        $parts = explode('.', $key, 2);
-
-        if (count($parts) < 2) {
+        if (! str_contains($key, '.')) {
             return;
         }
 
-        [$section, $field] = $parts;
+        [$section, $field] = explode('.', $key, 2);
         $this->saveField($section, $field);
     }
 
     public function saveField(string $sectionKey, string $fieldKey): void
     {
-        $application = VisaApplication::where('ulid', $this->applicationUlid)->firstOrFail();
+        $application = $this->getApplication();
         Gate::authorize('respondToInfoRequest', $application);
 
         $value = $this->answers[$sectionKey][$fieldKey] ?? null;
@@ -71,7 +65,7 @@ class InfoResponsePanel extends Component
 
     public function submitResponse(): void
     {
-        $application = VisaApplication::where('ulid', $this->applicationUlid)->firstOrFail();
+        $application = $this->getApplication();
         Gate::authorize('respondToInfoRequest', $application);
 
         try {
@@ -87,16 +81,13 @@ class InfoResponsePanel extends Component
 
     public function render(): View
     {
-        $application = VisaApplication::with(['formTemplate', 'notes', 'documents'])
-            ->where('ulid', $this->applicationUlid)
-            ->firstOrFail();
+        $application = $this->getApplication();
+        $fieldsToUnlock = $this->resolveFieldsToUnlock();
 
         $infoNote = $application->notes
             ->where('is_visible_to_applicant', true)
-            ->whereNotNull('metadata')
+            ->filter(fn ($n) => $n->metadata !== null)
             ->first();
-
-        $fieldsToUnlock = $infoNote?->metadata['fields_to_unlock'] ?? [];
 
         $sections = collect($application->formTemplate->schema['sections'] ?? [])
             ->map(function (array $section) use ($fieldsToUnlock): array {
@@ -112,21 +103,33 @@ class InfoResponsePanel extends Component
             ->values()
             ->all();
 
+        $hasPendingDocs = $application->documents
+            ->whereIn('status', ['pending', 'rejected', 'infected'])
+            ->isNotEmpty();
+
         return view('livewire.applications.info-response-panel', [
             'application' => $application,
             'infoNote' => $infoNote,
             'sections' => $sections,
+            'hasPendingDocs' => $hasPendingDocs,
         ]);
     }
 
     /** @return list<string> */
-    private function resolveFieldsToUnlock(VisaApplication $application): array
+    private function resolveFieldsToUnlock(): array
     {
-        $note = $application->notes
+        $note = $this->getApplication()->notes
             ->where('is_visible_to_applicant', true)
-            ->whereNotNull('metadata')
+            ->filter(fn ($n) => $n->metadata !== null)
             ->first();
 
         return $note?->metadata['fields_to_unlock'] ?? [];
+    }
+
+    private function getApplication(): VisaApplication
+    {
+        return VisaApplication::with(['formTemplate', 'notes', 'documents', 'answers'])
+            ->where('ulid', $this->applicationUlid)
+            ->firstOrFail();
     }
 }

@@ -102,12 +102,6 @@
     @endif
 
     {{-- Documents section --}}
-    @php
-        $hasPendingDocs = $application->documents()
-            ->whereIn('status', ['pending', 'rejected', 'infected'])
-            ->exists();
-    @endphp
-
     @if($hasPendingDocs)
         <x-card title="Upload requested documents">
             <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">

@@ -74,8 +74,7 @@ class InfoResponsePanelTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(InfoResponsePanel::class, ['applicationUlid' => $application->ulid])
-            ->set('answers.travel_details.travel_purpose', 'Tourism')
-            ->call('saveField', 'travel_details', 'travel_purpose');
+            ->set('answers.travel_details.travel_purpose', 'Tourism');
 
         $this->assertDatabaseHas('application_answers', [
             'visa_application_id' => $application->ulid,
