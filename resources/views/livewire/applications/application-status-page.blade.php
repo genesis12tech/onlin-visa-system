@@ -28,10 +28,7 @@
     </x-card>
 
     {{-- Decision details --}}
-    @if(in_array($application->status, [
-        \App\Domain\Applications\Enums\ApplicationStatus::Approved,
-        \App\Domain\Applications\Enums\ApplicationStatus::Rejected,
-    ]))
+    @if($isDecided)
         <x-card title="Decision details">
             <div class="space-y-3">
                 @if($application->decision_at)
@@ -46,7 +43,7 @@
                         <p class="text-gray-900 dark:text-white">{{ $application->decision_reason }}</p>
                     </div>
                 @endif
-                @if($application->status === \App\Domain\Applications\Enums\ApplicationStatus::Approved)
+                @if($isApproved)
                     @if($application->validity_period)
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-500 dark:text-gray-400">Validity period</span>
@@ -65,30 +62,29 @@
     @endif
 
     {{-- Appointment --}}
-    @if($application->latestAppointment)
-        @php $appt = $application->latestAppointment; @endphp
+    @if($appointment)
         <x-card title="Appointment">
             <div class="space-y-3">
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-500 dark:text-gray-400">Date &amp; time</span>
-                    <span class="font-medium text-gray-900 dark:text-white">{{ $appt->appointment_at->format('d M Y, H:i') }}</span>
+                    <span class="font-medium text-gray-900 dark:text-white">{{ $appointment->appointment_at->format('d M Y, H:i') }}</span>
                 </div>
-                @if($appt->type)
+                @if($appointment->type)
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-500 dark:text-gray-400">Type</span>
-                        <span class="font-medium text-gray-900 dark:text-white">{{ ucfirst($appt->type) }}</span>
+                        <span class="font-medium text-gray-900 dark:text-white">{{ ucfirst($appointment->type) }}</span>
                     </div>
                 @endif
-                @if($appt->location)
+                @if($appointment->location)
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-500 dark:text-gray-400">Location</span>
-                        <span class="font-medium text-gray-900 dark:text-white">{{ $appt->location }}</span>
+                        <span class="font-medium text-gray-900 dark:text-white">{{ $appointment->location }}</span>
                     </div>
                 @endif
-                @if($appt->instructions)
+                @if($appointment->instructions)
                     <div class="text-sm">
                         <p class="mb-1 text-gray-500 dark:text-gray-400">Instructions</p>
-                        <p class="whitespace-pre-line text-gray-900 dark:text-white">{{ $appt->instructions }}</p>
+                        <p class="whitespace-pre-line text-gray-900 dark:text-white">{{ $appointment->instructions }}</p>
                     </div>
                 @endif
             </div>
@@ -110,19 +106,19 @@
     @endif
 
     {{-- Status history --}}
-    @if($application->statusHistories->isNotEmpty())
+    @if($statusHistories->isNotEmpty())
         <x-card title="Application history">
             <ol class="relative ml-3 border-l border-gray-200 dark:border-gray-700">
-                @foreach($application->statusHistories as $history)
+                @foreach($statusHistories as $history)
                     <li class="mb-6 ml-6 last:mb-0">
                         <span class="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 ring-8 ring-white dark:bg-blue-900 dark:ring-gray-800">
                             <i class="ti ti-circle-check text-xs text-blue-600 dark:text-blue-300"></i>
                         </span>
                         <p class="text-sm font-medium text-gray-900 dark:text-white">
-                            {{ \App\Domain\Applications\Enums\ApplicationStatus::tryFrom($history->to_status)?->label() ?? $history->to_status }}
+                            {{ $history['label'] }}
                         </p>
                         <time class="text-xs text-gray-500 dark:text-gray-400">
-                            {{ $history->created_at->format('d M Y, H:i') }}
+                            {{ $history['created_at']->format('d M Y, H:i') }}
                         </time>
                     </li>
                 @endforeach

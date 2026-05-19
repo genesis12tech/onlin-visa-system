@@ -31,12 +31,18 @@ class ApplicationStatusPage extends Component
 
         $latestPayment = $application->payments->sortByDesc('created_at')->first();
         $statusInfo = $this->resolveStatusInfo($application->status);
-
-        return view('livewire.applications.application-status-page', [
-            'application' => $application,
-            'latestPayment' => $latestPayment,
-            'statusInfo' => $statusInfo,
+        $appointment = $application->latestAppointment;
+        $isDecided = in_array($application->status, [ApplicationStatus::Approved, ApplicationStatus::Rejected]);
+        $isApproved = $application->status === ApplicationStatus::Approved;
+        $statusHistories = $application->statusHistories->map(fn ($h) => [
+            'label' => ApplicationStatus::tryFrom($h->to_status)?->label() ?? $h->to_status,
+            'created_at' => $h->created_at,
         ]);
+
+        return view('livewire.applications.application-status-page', compact(
+            'application', 'latestPayment', 'statusInfo',
+            'appointment', 'isDecided', 'isApproved', 'statusHistories',
+        ));
     }
 
     /** @return array{icon: string, bgClass: string, iconClass: string, description: string} */
@@ -91,7 +97,7 @@ class ApplicationStatusPage extends Component
                 'iconClass' => 'text-gray-400 dark:text-gray-500',
                 'description' => 'This application was withdrawn.',
             ],
-            default => [
+            ApplicationStatus::Draft, ApplicationStatus::AdditionalInfoRequested => [
                 'icon' => 'ti-file',
                 'bgClass' => 'bg-gray-100 dark:bg-gray-700',
                 'iconClass' => 'text-gray-400 dark:text-gray-500',
