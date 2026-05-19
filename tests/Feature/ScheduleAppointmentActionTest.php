@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Domain\Applications\Actions\ScheduleAppointment;
 use App\Domain\Applications\Enums\ApplicationStatus;
+use App\Domain\Applications\Jobs\GenerateAppointmentConfirmationPdf;
 use App\Domain\Applications\Models\FormTemplate;
 use App\Domain\Applications\Models\VisaApplication;
 use App\Domain\Applications\Models\VisaType;
@@ -13,6 +14,7 @@ use App\Models\User;
 use App\Notifications\AppointmentScheduledNotification;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
@@ -67,6 +69,18 @@ class ScheduleAppointmentActionTest extends TestCase
 
         $applicantUser = $application->applicantProfile->user;
         Notification::assertSentTo($applicantUser, AppointmentScheduledNotification::class);
+    }
+
+    public function test_action_dispatches_pdf_job(): void
+    {
+        Bus::fake();
+
+        $actor = User::factory()->create();
+        $application = $this->makeApplication();
+
+        (new ScheduleAppointment)->execute($application, $actor, Carbon::parse('2026-06-01 10:00:00'));
+
+        Bus::assertDispatched(GenerateAppointmentConfirmationPdf::class);
     }
 
     private function makeApplication(): VisaApplication

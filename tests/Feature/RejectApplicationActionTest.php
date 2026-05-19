@@ -10,7 +10,9 @@ use App\Domain\Applications\Models\VisaType;
 use App\Domain\Identity\Models\ApplicantProfile;
 use App\Domain\Identity\Models\Country;
 use App\Models\User;
+use App\Notifications\ApplicationRejectedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
@@ -63,6 +65,19 @@ class RejectApplicationActionTest extends TestCase
             'actor_id' => $actor->id,
             'reason' => 'Missing passport copy',
         ]);
+    }
+
+    public function test_reject_action_sends_notification_to_applicant(): void
+    {
+        Notification::fake();
+
+        $actor = User::factory()->create();
+        $application = $this->makeSubmittedApplication();
+
+        (new RejectApplication)->execute($application, $actor, 'Incomplete documents');
+
+        $applicantUser = $application->applicantProfile->user;
+        Notification::assertSentTo($applicantUser, ApplicationRejectedNotification::class);
     }
 
     private function makeSubmittedApplication(): VisaApplication
