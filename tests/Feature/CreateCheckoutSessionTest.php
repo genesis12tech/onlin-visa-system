@@ -161,8 +161,8 @@ class CreateCheckoutSessionTest extends TestCase
         (new CreateCheckoutSession)->execute($this->application, $this->actor);
 
         $payment = Payment::where('visa_application_id', $this->application->ulid)->firstOrFail();
-        $this->assertArrayHasKey('idempotencyKey', $capturedOptions);
-        $this->assertEquals('checkout-'.$payment->ulid, $capturedOptions['idempotencyKey']);
+        $this->assertArrayHasKey('idempotency_key', $capturedOptions);
+        $this->assertEquals('checkout-'.$payment->ulid, $capturedOptions['idempotency_key']);
     }
 
     public function test_marks_payment_failed_and_preserves_submitted_status_when_stripe_throws(): void

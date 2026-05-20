@@ -69,7 +69,7 @@ class CreateCheckoutSession
                         'visa_application_ulid' => $application->ulid,
                     ],
                 ],
-                ['idempotencyKey' => 'checkout-'.$payment->ulid]
+                ['idempotency_key' => 'checkout-'.$payment->ulid]
             );
         } catch (\Exception $e) {
             $payment->update(['status' => PaymentStatus::Failed, 'failure_reason' => $e->getMessage()]);
