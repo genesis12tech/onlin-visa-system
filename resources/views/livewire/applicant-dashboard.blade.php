@@ -71,9 +71,18 @@
                 </div>
                 <div class="divide-y divide-gray-100 dark:divide-gray-700">
                     @forelse(auth()->user()->notifications()->latest()->take(4)->get() as $notification)
+                        @php
+                            $dotClass = match ($notification->data['type'] ?? '') {
+                                'application_rejected', 'document_rejected' => 'bg-red-500',
+                                'application_approved' => 'bg-green-500',
+                                'payment_succeeded' => 'bg-blue-500',
+                                'additional_info_requested' => 'bg-amber-500',
+                                'appointment_scheduled' => 'bg-purple-500',
+                                default => $notification->read_at ? 'bg-gray-300 dark:bg-gray-600' : 'bg-blue-500',
+                            };
+                        @endphp
                         <div class="flex items-start gap-2.5 px-4 py-3">
-                            <div class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0
-                                {{ $notification->read_at ? 'bg-gray-300 dark:bg-gray-600' : 'bg-blue-500' }}">
+                            <div class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 {{ $dotClass }}">
                             </div>
                             <div>
                                 <p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
