@@ -3,7 +3,12 @@
     <span class="text-sm text-amber-800 dark:text-amber-300">
         <strong>Action required</strong> on
         <span class="font-mono">{{ $application->tracking_number }}</span>
-        @if($docName = $application->latestRejectedDocumentName())
+        @if($application->status === \App\Domain\Applications\Enums\ApplicationStatus::PaymentPending)
+            — payment is required before your application can be processed.
+            <a href="{{ route('applications.pay', $application->tracking_number) }}" class="underline font-medium">Complete payment</a>
+        @elseif($application->status === \App\Domain\Applications\Enums\ApplicationStatus::Approved)
+            — your visa has been approved. Download your decision letter from the application page.
+        @elseif($docName = $application->latestRejectedDocumentName())
             — your {{ $docName }} was rejected. Please resubmit.
         @else
             — additional information requested.

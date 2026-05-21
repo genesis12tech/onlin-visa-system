@@ -176,6 +176,68 @@ class ApplicantDashboardTest extends TestCase
             ->assertSee(route('documents'));
     }
 
+    public function test_alert_bar_is_visible_when_payment_pending_application_exists(): void
+    {
+        $this->makeApplication(ApplicationStatus::PaymentPending);
+
+        Livewire::actingAs($this->user)
+            ->test(ApplicantDashboard::class)
+            ->assertSet('actionRequiredApp', fn ($v) => $v !== null);
+    }
+
+    public function test_alert_bar_is_visible_when_approved_application_has_decision_letter(): void
+    {
+        $this->makeApplication(ApplicationStatus::Approved, [
+            'decision_letter_pdf_path' => 'letters/decision.pdf',
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(ApplicantDashboard::class)
+            ->assertSet('actionRequiredApp', fn ($v) => $v !== null);
+    }
+
+    public function test_alert_bar_hidden_when_approved_application_has_no_decision_letter(): void
+    {
+        $this->makeApplication(ApplicationStatus::Approved, [
+            'decision_letter_pdf_path' => null,
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(ApplicantDashboard::class)
+            ->assertSet('actionRequiredApp', null);
+    }
+
+    public function test_action_needed_count_includes_payment_pending(): void
+    {
+        $this->makeApplication(ApplicationStatus::AdditionalInfoRequested);
+        $this->makeApplication(ApplicationStatus::PaymentPending);
+        $this->makeApplication(ApplicationStatus::UnderReview);
+
+        Livewire::actingAs($this->user)
+            ->test(ApplicantDashboard::class)
+            ->assertSet('actionNeededCount', 2);
+    }
+
+    public function test_quick_actions_includes_complete_payment_when_payment_pending_exists(): void
+    {
+        $this->makeApplication(ApplicationStatus::PaymentPending);
+
+        $component = Livewire::actingAs($this->user)->test(ApplicantDashboard::class);
+        $labels = collect($component->get('quickActions'))->pluck('label')->all();
+
+        $this->assertContains('Complete payment', $labels);
+    }
+
+    public function test_complete_payment_not_in_quick_actions_when_no_payment_pending(): void
+    {
+        $this->makeApplication(ApplicationStatus::Submitted);
+
+        $component = Livewire::actingAs($this->user)->test(ApplicantDashboard::class);
+        $labels = collect($component->get('quickActions'))->pluck('label')->all();
+
+        $this->assertNotContains('Complete payment', $labels);
+    }
+
     /** @param array<string, mixed> $overrides */
     private function makeApplication(ApplicationStatus $status, array $overrides = []): VisaApplication
     {

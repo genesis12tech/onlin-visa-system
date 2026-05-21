@@ -49,14 +49,20 @@ class ApplicantDashboard extends Component
             ->filter(fn ($a) => in_array($a->status->value, ApplicationStatus::inProgressValues(), true))
             ->count();
         $this->actionNeededCount = $apps
-            ->filter(fn ($a) => $a->status === ApplicationStatus::AdditionalInfoRequested)
+            ->filter(fn ($a) => $this->isActionRequired($a))
             ->count();
         $this->approvedCount = $apps
             ->filter(fn ($a) => $a->status === ApplicationStatus::Approved)
             ->count();
-        $this->actionRequiredApp = $apps
-            ->first(fn ($a) => $a->status === ApplicationStatus::AdditionalInfoRequested);
+        $this->actionRequiredApp = $apps->first(fn ($a) => $this->isActionRequired($a));
         $this->quickActions = $this->buildQuickActions($apps);
+    }
+
+    private function isActionRequired(VisaApplication $app): bool
+    {
+        return $app->status === ApplicationStatus::AdditionalInfoRequested
+            || $app->status === ApplicationStatus::PaymentPending
+            || ($app->status === ApplicationStatus::Approved && $app->decision_letter_pdf_path !== null);
     }
 
     /** @param Collection<int, VisaApplication> $apps */
@@ -70,6 +76,15 @@ class ApplicantDashboard extends Component
                 'icon' => 'upload',
                 'label' => 'Resubmit documents',
                 'href' => route('applications.wizard', $infoApp->tracking_number),
+            ];
+        }
+
+        $paymentApp = $apps->first(fn ($a) => $a->status === ApplicationStatus::PaymentPending);
+        if ($paymentApp) {
+            $actions[] = [
+                'icon' => 'credit-card',
+                'label' => 'Complete payment',
+                'href' => route('applications.pay', $paymentApp->tracking_number),
             ];
         }
 
