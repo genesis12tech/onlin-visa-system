@@ -168,6 +168,14 @@ class ApplicantDashboardTest extends TestCase
         $this->assertContains('Track an application', $labels);
     }
 
+    public function test_nav_contains_documents_link(): void
+    {
+        $this->actingAs($this->user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(route('documents'));
+    }
+
     /** @param array<string, mixed> $overrides */
     private function makeApplication(ApplicationStatus $status, array $overrides = []): VisaApplication
     {
