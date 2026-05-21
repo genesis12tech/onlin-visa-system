@@ -7,7 +7,6 @@ use App\Http\Controllers\Auth\MfaChallengeController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentDownloadController;
 use App\Http\Controllers\ExportDownloadController;
 use App\Http\Controllers\OfficerDocumentPreviewController;
@@ -15,6 +14,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReceiptDownloadController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureProfileComplete;
+use App\Livewire\ApplicantDashboard;
 use App\Livewire\Applications\ApplicationWizard;
 use App\Livewire\Payments\FeeSummary;
 use App\Livewire\Profile\SetupWizard;
@@ -59,7 +59,7 @@ Route::middleware('auth')->group(function () {
 
     // Protected applicant area — requires verified email AND complete profile
     Route::middleware(['verified', EnsureProfileComplete::class])->group(function () {
-        Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::get('/dashboard', ApplicantDashboard::class)->name('dashboard');
 
         // Applications
         Route::get('/applications/start', [ApplicationController::class, 'start'])->name('applications.start');

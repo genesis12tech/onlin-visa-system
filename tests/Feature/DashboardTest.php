@@ -85,7 +85,7 @@ class DashboardTest extends TestCase
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Needs your attention');
+            ->assertSee('Action required');
     }
 
     public function test_action_required_banner_not_shown_when_no_attention_needed(): void
@@ -107,6 +107,6 @@ class DashboardTest extends TestCase
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertDontSee('Needs your attention');
+            ->assertDontSee('Action required');
     }
 }

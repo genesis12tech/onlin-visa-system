@@ -50,4 +50,42 @@ enum ApplicationStatus: string
     {
         return $this->color();
     }
+
+    /** @return string[] */
+    public static function inProgressValues(): array
+    {
+        return [
+            self::Submitted->value,
+            self::PaymentPending->value,
+            self::PaymentCompleted->value,
+            self::UnderReview->value,
+            self::AdditionalInfoRequested->value,
+            self::DocsRequired->value,
+        ];
+    }
+
+    public function colour(): string
+    {
+        return match ($this) {
+            self::Draft, self::Withdrawn => 'gray',
+            self::Submitted, self::PaymentPending => 'blue',
+            self::PaymentCompleted, self::UnderReview, self::DocsRequired => 'purple',
+            self::AdditionalInfoRequested => 'amber',
+            self::Approved => 'green',
+            self::Rejected => 'red',
+        };
+    }
+
+    public function publicLabel(): string
+    {
+        return match ($this) {
+            self::Draft => 'Draft',
+            self::Submitted, self::PaymentPending => 'Submitted',
+            self::PaymentCompleted, self::UnderReview, self::DocsRequired => 'In review',
+            self::AdditionalInfoRequested => 'Action required',
+            self::Approved => 'Approved',
+            self::Rejected => 'Not approved',
+            self::Withdrawn => 'Closed',
+        };
+    }
 }

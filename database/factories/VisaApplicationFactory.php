@@ -44,4 +44,38 @@ class VisaApplicationFactory extends Factory
     {
         return $this->state(fn () => ['status' => ApplicationStatus::Withdrawn]);
     }
+
+    public function underReview(): static
+    {
+        return $this->state(fn () => [
+            'status' => ApplicationStatus::UnderReview,
+            'submitted_at' => now(),
+        ]);
+    }
+
+    public function infoRequested(): static
+    {
+        return $this->state(fn () => [
+            'status' => ApplicationStatus::AdditionalInfoRequested,
+            'submitted_at' => now(),
+        ]);
+    }
+
+    public function approved(): static
+    {
+        return $this->state(fn () => [
+            'status' => ApplicationStatus::Approved,
+            'submitted_at' => now(),
+            'decision_at' => now(),
+        ]);
+    }
+
+    public function rejected(): static
+    {
+        return $this->state(fn () => [
+            'status' => ApplicationStatus::Rejected,
+            'submitted_at' => now(),
+            'decision_at' => now(),
+        ]);
+    }
 }

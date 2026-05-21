@@ -70,4 +70,14 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     {
         return $this->hasOne(ApplicantProfile::class);
     }
+
+    public function initials(): string
+    {
+        $parts = explode(' ', trim($this->name));
+        if (count($parts) >= 2) {
+            return strtoupper(substr($parts[0], 0, 1).substr($parts[count($parts) - 1], 0, 1));
+        }
+
+        return strtoupper(substr($this->name, 0, 2));
+    }
 }

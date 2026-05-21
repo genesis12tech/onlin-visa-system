@@ -3,6 +3,7 @@
 namespace App\Domain\Applications\Models;
 
 use App\Domain\Applications\Enums\ApplicationStatus;
+use App\Domain\Documents\Enums\DocumentStatus;
 use App\Domain\Documents\Models\ApplicationDocument;
 use App\Domain\Identity\Models\ApplicantProfile;
 use App\Domain\Payments\Models\Payment;
@@ -177,6 +178,75 @@ class VisaApplication extends Model
         }
 
         return $q;
+    }
+
+    public function acceptedDocumentsCount(): int
+    {
+        return $this->documents
+            ->filter(fn (ApplicationDocument $d) => $d->status === DocumentStatus::Accepted)
+            ->count();
+    }
+
+    public function requiredDocumentsCount(): int
+    {
+        return $this->visaType
+            ->documentRequirements()
+            ->where('is_required', true)
+            ->count();
+    }
+
+    public function workflowProgressPercent(): int
+    {
+        $positions = [
+            'draft' => 5,
+            'submitted' => 20,
+            'payment_pending' => 25,
+            'payment_completed' => 35,
+            'under_review' => 55,
+            'additional_info_requested' => 55,
+            'docs_required' => 60,
+            'approved' => 100,
+            'rejected' => 100,
+            'withdrawn' => 100,
+        ];
+
+        return $positions[$this->status->value] ?? 0;
+    }
+
+    public function workflowProgressColour(): string
+    {
+        return match ($this->status) {
+            ApplicationStatus::Approved => 'bg-green-500',
+            ApplicationStatus::Rejected => 'bg-red-500',
+            ApplicationStatus::AdditionalInfoRequested => 'bg-amber-500',
+            default => 'bg-blue-500',
+        };
+    }
+
+    public function workflowProgressLabel(): string
+    {
+        return match ($this->status) {
+            ApplicationStatus::Draft => 'Draft',
+            ApplicationStatus::Submitted,
+            ApplicationStatus::PaymentPending => 'Payment pending',
+            ApplicationStatus::PaymentCompleted => 'Paid',
+            ApplicationStatus::UnderReview => 'Under review',
+            ApplicationStatus::AdditionalInfoRequested => 'Action required',
+            ApplicationStatus::DocsRequired => 'Documents required',
+            ApplicationStatus::Approved => 'Complete',
+            ApplicationStatus::Rejected => 'Complete',
+            ApplicationStatus::Withdrawn => 'Withdrawn',
+        };
+    }
+
+    public function latestRejectedDocumentName(): ?string
+    {
+        $doc = $this->documents
+            ->filter(fn (ApplicationDocument $d) => $d->status === DocumentStatus::Rejected)
+            ->sortByDesc('updated_at')
+            ->first();
+
+        return $doc?->documentType?->name;
     }
 
     public function getSlaRemainingDaysAttribute(): int
