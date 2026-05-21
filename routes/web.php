@@ -16,6 +16,7 @@ use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureProfileComplete;
 use App\Livewire\ApplicantDashboard;
 use App\Livewire\Applications\ApplicationWizard;
+use App\Livewire\Documents\DocumentsPage;
 use App\Livewire\Payments\FeeSummary;
 use App\Livewire\Profile\SetupWizard;
 use App\Livewire\Tracking\PublicTrackingForm;
@@ -60,6 +61,7 @@ Route::middleware('auth')->group(function () {
     // Protected applicant area — requires verified email AND complete profile
     Route::middleware(['verified', EnsureProfileComplete::class])->group(function () {
         Route::get('/dashboard', ApplicantDashboard::class)->name('dashboard');
+        Route::get('/documents', DocumentsPage::class)->name('documents');
 
         // Applications
         Route::get('/applications/start', [ApplicationController::class, 'start'])->name('applications.start');
