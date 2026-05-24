@@ -17,7 +17,10 @@ use App\Http\Middleware\EnsureProfileComplete;
 use App\Livewire\ApplicantDashboard;
 use App\Livewire\Applications\ApplicationWizard;
 use App\Livewire\Documents\DocumentsPage;
+use App\Livewire\Notifications\NotificationsPage;
 use App\Livewire\Payments\FeeSummary;
+use App\Livewire\Payments\PaymentsPage;
+use App\Livewire\Profile\ProfilePage;
 use App\Livewire\Profile\SetupWizard;
 use App\Livewire\Tracking\PublicTrackingForm;
 use Illuminate\Support\Facades\Route;
@@ -64,9 +67,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/documents', DocumentsPage::class)->name('documents');
 
         // Applications
+        Route::get('/applications', ApplicantDashboard::class)->name('applications.index');
         Route::get('/applications/start', [ApplicationController::class, 'start'])->name('applications.start');
         Route::post('/applications', [ApplicationController::class, 'store'])->name('applications.store');
         Route::get('/applications/{tracking}', ApplicationWizard::class)->name('applications.wizard');
+
+        // Panel pages
+        Route::get('/payments', PaymentsPage::class)->name('payments');
+        Route::get('/notifications', NotificationsPage::class)->name('notifications');
+        Route::get('/profile', ProfilePage::class)->name('profile');
         Route::post('/applications/{tracking}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');
 
         // Payment flow
