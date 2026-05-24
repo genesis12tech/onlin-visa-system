@@ -30,8 +30,7 @@
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
          class="absolute right-0 mt-2 w-80 rounded-xl border bg-white shadow-lg"
-         style="border-color:var(--portal-sand-3);z-index:200"
-         style="display:none">
+         style="border-color:var(--portal-sand-3);z-index:200;display:none">
 
         <div class="flex items-center justify-between border-b px-4 py-3"
              style="border-color:var(--portal-sand-3)">
