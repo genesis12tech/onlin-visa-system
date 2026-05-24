@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VisaPortal — My Applications</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sand:#f5f0e8;--sand2:#ede8df;--sand3:#e2dbd0;
+  --ink:#1c1a17;--ink2:#3d3a35;--ink3:#6b6760;--ink4:#9c9890;
+  --teal:#0d7d6b;--teal2:#0a6558;--teal-soft:#e8f5f2;--teal-mid:#b3ddd7;
+  --amber:#c8860a;--amber-soft:#fdf3e0;--amber-mid:#f5d48a;
+  --red:#c0392b;--red-soft:#fdecea;
+  --blue:#1a5fa8;--blue-soft:#e8f0fb;
+  --purple:#6b3fa0;--purple-soft:#f0eafa;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 2px 12px rgba(28,26,23,.08);--shadow-md:0 4px 24px rgba(28,26,23,.12);
+  --font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--sand);color:var(--ink);min-height:100vh;display:flex}
+
+/* ── Sidebar ── */
+.sidebar{width:248px;min-height:100vh;background:#fff;border-right:1px solid var(--sand3);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sb-logo{padding:24px 20px 20px;border-bottom:1px solid var(--sand3);display:flex;align-items:center;gap:10px}
+.sb-logomark{width:36px;height:36px;background:var(--teal);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.sb-logotxt .name{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+.sb-logotxt .sub{font-size:10px;color:var(--ink4);font-weight:400}
+.sb-nav{padding:14px 12px;flex:1;overflow-y:auto}
+.sb-section{font-size:9px;font-weight:700;color:var(--ink4);letter-spacing:.12em;text-transform:uppercase;padding:10px 8px 5px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);cursor:pointer;color:var(--ink3);font-size:13px;font-weight:500;transition:all .15s;margin-bottom:2px;position:relative}
+.sb-item:hover{background:var(--sand);color:var(--ink)}
+.sb-item.active{background:var(--teal-soft);color:var(--teal)}
+.sb-item.active::before{content:'';position:absolute;left:-12px;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--teal);border-radius:0 3px 3px 0}
+.sb-icon{width:16px;height:16px;flex-shrink:0;opacity:.8}
+.sb-badge{margin-left:auto;background:var(--teal);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px}
+.sb-badge.amber{background:var(--amber)}
+.sb-footer{padding:14px;border-top:1px solid var(--sand3)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius-sm);background:var(--sand);cursor:pointer}
+.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.sb-uname{font-size:13px;font-weight:600;color:var(--ink)}
+.sb-uemail{font-size:11px;color:var(--ink4)}
+
+/* ── Main ── */
+.main{margin-left:248px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{height:60px;background:#fff;border-bottom:1px solid var(--sand3);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50}
+.topbar-title{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.icon-btn{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--sand);border:1px solid var(--sand3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative}
+.icon-btn:hover{border-color:var(--sand2);background:var(--sand2)}
+.notif-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;background:var(--amber);border-radius:50%;border:2px solid #fff}
+.btn{padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:var(--font);transition:all .15s;display:inline-flex;align-items:center;gap:7px}
+.btn-primary{background:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--teal2)}
+.btn-outline{background:#fff;color:var(--ink2);border:1px solid var(--sand3)}
+.btn-outline:hover{border-color:var(--sand2);background:var(--sand)}
+.content{padding:28px;flex:1}
+
+/* ── Sections ── */
+.section{display:none}
+.section.active{display:block}
+
+/* ── Dashboard ── */
+.welcome-banner{background:linear-gradient(135deg,var(--teal) 0%,#0b5a4d 100%);border-radius:var(--radius);padding:28px 32px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+.welcome-banner::before{content:'';position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.06)}
+.welcome-banner::after{content:'';position:absolute;right:60px;bottom:-60px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.04)}
+.wb-title{font-size:22px;font-weight:700;color:#fff;letter-spacing:-.4px;margin-bottom:6px}
+.wb-sub{font-size:13px;color:rgba(255,255,255,.75)}
+.wb-action{background:#fff;color:var(--teal);padding:10px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:var(--font);white-space:nowrap;z-index:1}
+.wb-action:hover{background:var(--teal-soft)}
+
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:#fff;border:1px solid var(--sand3);border-radius:var(--radius);padding:18px 20px}
+.stat-num{font-size:28px;font-weight:700;letter-spacing:-1px;color:var(--ink);margin-bottom:4px}
+.stat-label{font-size:12px;color:var(--ink4);font-weight:500}
+.stat-sub{font-size:11px;margin-top:6px;font-weight:500}
+
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px}
+.card{background:#fff;border:1px solid var(--sand3);border-radius:var(--radius);padding:20px}
+.card-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.card-sub{font-size:12px;color:var(--ink4);margin-bottom:16px}
+
+/* ── Application cards ── */
+.app-list{display:flex;flex-direction:column;gap:12px}
+.app-card{background:#fff;border:1px solid var(--sand3);border-radius:var(--radius);padding:18px 20px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.app-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.app-card.approved::before{background:var(--teal)}
+.app-card.submitted::before{background:var(--blue)}
+.app-card.under_review::before{background:var(--amber)}
+.app-card.rejected::before{background:var(--red)}
+.app-card.additional_docs::before{background:var(--purple)}
+.app-card.draft::before{background:var(--ink4)}
+.app-card:hover{border-color:var(--sand2);box-shadow:var(--shadow)}
+.app-card-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.app-ref{font-family:var(--mono);font-size:12px;color:var(--teal);font-weight:500}
+.app-title{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.app-meta{font-size:12px;color:var(--ink4)}
+.app-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--sand3)}
+.progress-bar{height:4px;background:var(--sand3);border-radius:4px;overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;border-radius:4px;transition:width .4s}
+
+/* ── Badge ── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.badge-approved{background:var(--teal-soft);color:var(--teal)}
+.badge-submitted{background:var(--blue-soft);color:var(--blue)}
+.badge-review{background:var(--amber-soft);color:var(--amber)}
+.badge-rejected{background:var(--red-soft);color:var(--red)}
+.badge-docs{background:var(--purple-soft);color:var(--purple)}
+.badge-draft{background:var(--sand2);color:var(--ink4)}
+.badge-paid{background:var(--teal-soft);color:var(--teal)}
+.badge-pending{background:var(--amber-soft);color:var(--amber)}
+
+/* ── Detail panel (modal-like) ── */
+.detail-overlay{position:fixed;inset:0;background:rgba(28,26,23,.5);z-index:200;display:none;align-items:flex-start;justify-content:flex-end;padding:0}
+.detail-overlay.open{display:flex}
+.detail-panel{background:#fff;width:520px;height:100vh;overflow-y:auto;box-shadow:-8px 0 40px rgba(28,26,23,.15);animation:slideIn .25s ease}
+@keyframes slideIn{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+.dp-header{padding:24px 24px 16px;border-bottom:1px solid var(--sand3);display:flex;align-items:flex-start;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1}
+.dp-title{font-size:17px;font-weight:700;color:var(--ink)}
+.dp-ref{font-family:var(--mono);font-size:11px;color:var(--teal);margin-top:3px}
+.dp-close{width:30px;height:30px;border-radius:6px;background:var(--sand);border:1px solid var(--sand3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink3)}
+.dp-body{padding:20px 24px}
+.dp-section{margin-bottom:20px}
+.dp-section-title{font-size:10px;font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--sand3)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.info-field label{font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px}
+.info-field span{font-size:13px;color:var(--ink);font-weight:500}
+.info-field.full{grid-column:1/-1}
+
+/* ── Timeline ── */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:12px;padding-bottom:16px;position:relative}
+.tl-item:last-child{padding-bottom:0}
+.tl-left{display:flex;flex-direction:column;align-items:center;gap:0}
+.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.tl-line{width:1px;flex:1;background:var(--sand3);margin-top:4px}
+.tl-item:last-child .tl-line{display:none}
+.tl-text{font-size:13px;font-weight:500;color:var(--ink)}
+.tl-note{font-size:12px;color:var(--ink3);margin-top:2px}
+.tl-time{font-size:11px;color:var(--ink4);margin-top:2px}
+
+/* ── Document items ── */
+.doc-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--sand3);border-radius:var(--radius-sm);margin-bottom:8px;background:var(--sand)}
+.doc-icon{width:32px;height:32px;border-radius:6px;background:#fff;border:1px solid var(--sand3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.doc-name{font-size:13px;font-weight:500;color:var(--ink)}
+.doc-meta{font-size:11px;color:var(--ink4)}
+.upload-btn{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--sand3);background:#fff;cursor:pointer;font-family:var(--font);font-weight:500;color:var(--ink3);transition:all .15s}
+.upload-btn:hover{border-color:var(--teal);color:var(--teal)}
+
+/* ── New application form ── */
+.form-steps{display:flex;align-items:center;gap:0;margin-bottom:28px}
+.step-item{display:flex;flex-direction:column;align-items:center;flex:1}
+.step-num{width:32px;height:32px;border-radius:50%;border:2px solid var(--sand3);background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--ink4);transition:all .2s;z-index:1}
+.step-num.active{border-color:var(--teal);background:var(--teal);color:#fff}
+.step-num.done{border-color:var(--teal);background:var(--teal);color:#fff}
+.step-lbl{font-size:10px;color:var(--ink4);margin-top:5px;font-weight:500;text-align:center}
+.step-lbl.active{color:var(--teal)}
+.step-connector{flex:1;height:2px;background:var(--sand3);margin-top:-20px;transition:background .3s}
+.step-connector.done{background:var(--teal)}
+.form-card{background:#fff;border:1px solid var(--sand3);border-radius:var(--radius);padding:24px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:4px}
+.field.full{grid-column:1/-1}
+.field label{font-size:12px;font-weight:600;color:var(--ink2)}
+.field input,.field select,.field textarea{padding:9px 12px;border:1px solid var(--sand3);border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;color:var(--ink);background:#fff;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal)}
+.field input.err,.field select.err{border-color:var(--red)}
+.err-msg{font-size:11px;color:var(--red);display:none}
+.err-msg.show{display:block}
+.visa-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px}
+.vt-card{border:2px solid var(--sand3);border-radius:var(--radius-sm);padding:14px;cursor:pointer;transition:all .15s;text-align:center}
+.vt-card:hover{border-color:var(--teal-mid)}
+.vt-card.selected{border-color:var(--teal);background:var(--teal-soft)}
+.vt-name{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.vt-fee{font-size:12px;color:var(--teal);font-weight:600}
+.vt-days{font-size:10px;color:var(--ink4);margin-top:2px}
+.form-actions{display:flex;justify-content:space-between;margin-top:20px}
+
+/* ── Payment section ── */
+.payment-card{background:#fff;border:1px solid var(--sand3);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+.payment-header{padding:16px 20px;border-bottom:1px solid var(--sand3);display:flex;align-items:center;justify-content:space-between}
+.gateway-card{border:2px solid var(--sand3);border-radius:var(--radius-sm);padding:16px 18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.gateway-card:hover{border-color:var(--teal-mid)}
+.gateway-card.selected{border-color:var(--teal);background:var(--teal-soft)}
+.gateway-logo{width:48px;height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;letter-spacing:-.5px}
+.gw-rp{background:#072654;color:#fff}
+.gw-stripe{background:#635bff;color:#fff}
+.gw-pp{background:#003087;color:#fff;font-size:10px}
+.gateway-name{font-size:13px;font-weight:600;color:var(--ink)}
+.gateway-desc{font-size:11px;color:var(--ink4)}
+
+/* ── Track section ── */
+.track-hero{background:#fff;border:1px solid var(--sand3);border-radius:var(--radius);padding:32px;text-align:center;max-width:520px;margin:0 auto 24px}
+.track-steps{display:flex;align-items:center;justify-content:center;margin-top:20px;gap:0}
+.ts-item{display:flex;flex-direction:column;align-items:center;flex:1}
+.ts-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--sand3);background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--ink4)}
+.ts-dot.done{border-color:var(--teal);background:var(--teal);color:#fff}
+.ts-dot.active{border-color:var(--teal);color:var(--teal)}
+.ts-line{flex:1;height:2px;background:var(--sand3);margin-top:-14px}
+.ts-line.done{background:var(--teal)}
+.ts-lbl{font-size:9px;color:var(--ink4);margin-top:5px;text-align:center;font-weight:500}
+
+/* ── Notification items ── */
+.notif-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--sand3)}
+.notif-item:last-child{border-bottom:none}
+.notif-dot-indicator{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.notif-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.notif-desc{font-size:12px;color:var(--ink3)}
+.notif-time{font-size:11px;color:var(--ink4);margin-top:3px}
+
+/* ── Success screen ── */
+.success-screen{text-align:center;padding:40px 20px}
+.success-icon{width:64px;height:64px;background:var(--teal-soft);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px}
+.ref-chip{background:var(--teal-soft);border:1px solid var(--teal-mid);color:var(--teal);font-family:var(--mono);font-size:16px;font-weight:700;padding:8px 20px;border-radius:8px;display:inline-block;margin:12px 0;letter-spacing:2px}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:48px 20px}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.empty-sub{font-size:13px;color:var(--ink4)}
+
+@media(max-width:768px){.sidebar{width:60px}.sb-logotxt,.sb-section,.sb-item span,.sb-uname,.sb-uemail{display:none}.main{margin-left:60px}.stat-row{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logomark">🌐</div>
+    <div class="sb-logotxt">
+      <div class="name">VisaPortal</div>
+      <div class="sub">Applicant Portal</div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Menu</div>
+    <div class="sb-item active" onclick="showSection('dashboard',this)">
+      <svg class="sb-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity=".8"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity=".5"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity=".5"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity=".3"/></svg>
+      <span>Dashboard</span>
+    </div>
+    <div class="sb-item" onclick="showSection('applications',this)">
+      <svg class="sb-icon" viewBox="0 0 16 16" fill="none"><path d="M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3"/><path d="M5 6h6M5 8.5h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span>My Applications</span>
+      <span class="sb-badge">3</span>
+    </div>
+    <div class="sb-item" onclick="showSection('new-application',this)">
+      <svg class="sb-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v6M5 8h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span>New Application</span>
+    </div>
+    <div class="sb-item" onclick="showSection('documents',this)">
+      <svg class="sb-icon" viewBox="0 0 16 16" fill="none"><path d="M4 1h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3"/><path d="M9 1v4h4" stroke="currentColor" stroke-width="1.3"/></svg>
+      <span>Documents</span>
+    </div>
+    <div class="sb-item" onclick="showSection('payments',this)">
+      <svg class="sb-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="4" width="14" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1 7h14" stroke="currentColor" stroke-width="1.3"/></svg>
+      <span>Payments</span>
+      <span class="sb-badge amber">1</span>
+    </div>
+    <div class="sb-item" onclick="showSection('track',this)">
+      <svg class="sb-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.5v4l2.5 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span>Track Status</span>
+    </div>
+    <div class="sb-section">Account</div>
+    <div class="sb-item" onclick="showSection('notifications',this)">
+      <svg class="sb-icon" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a4.5 4.5 0 014.5 4.5v3l1 2H2.5l1-2V6A4.5 4.5 0 018 1.5z" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 12.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.3"/></svg>
+      <span>Notifications</span>
+      <span class="sb-badge">2</span>
+    </div>
+    <div class="sb-item" onclick="showSection('profile',this)">
+      <svg class="sb-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M2 14c0-3 2.686-4.5 6-4.5s6 1.5 6 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span>My Profile</span>
+    </div>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">AR</div>
+      <div>
+        <div class="sb-uname">Arjun Mehta</div>
+        <div class="sb-uemail">arjun@example.com</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="topbar-right">
+      <div class="icon-btn" onclick="showSection('notifications',document.querySelector('.sb-item:nth-child(8)'))">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a4.5 4.5 0 014.5 4.5v3l1 2H2.5l1-2V6A4.5 4.5 0 018 1.5z" stroke="#6b6760" stroke-width="1.3"/><path d="M6.5 12.5a1.5 1.5 0 003 0" stroke="#6b6760" stroke-width="1.3"/></svg>
+        <div class="notif-dot"></div>
+      </div>
+      <div class="sb-avatar" style="cursor:pointer">AR</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="section active" id="section-dashboard">
+      <div class="welcome-banner">
+        <div>
+          <div class="wb-title">Welcome back, Arjun 👋</div>
+          <div class="wb-sub">You have 1 application pending review and 1 payment due.</div>
+        </div>
+        <button class="wb-action" onclick="showSection('new-application',document.querySelectorAll('.sb-item')[2])">+ New Application</button>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-num" style="color:var(--ink)">5</div><div class="stat-label">Total Applications</div><div class="stat-sub" style="color:var(--ink4)">Since 2023</div></div>
+        <div class="stat-card"><div class="stat-num" style="color:var(--teal)">2</div><div class="stat-label">Approved</div><div class="stat-sub" style="color:var(--teal)">↑ Active</div></div>
+        <div class="stat-card"><div class="stat-num" style="color:var(--amber)">1</div><div class="stat-label">Under Review</div><div class="stat-sub" style="color:var(--amber)">Est. 4 days</div></div>
+        <div class="stat-card"><div class="stat-num" style="color:var(--red)">1</div><div class="stat-label">Pending Payment</div><div class="stat-sub" style="color:var(--red)">Action needed</div></div>
+      </div>
+      <div class="grid2">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:14px">Recent Applications</div>
+          <div class="app-list" id="dash-apps"></div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-title">Upcoming Travel</div>
+            <div class="card-sub">Your next approved trip</div>
+            <div style="background:var(--teal-soft);border-radius:var(--radius-sm);padding:14px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--teal);letter-spacing:-1px">Jan 14</div>
+              <div style="font-size:12px;color:var(--teal2);margin-top:2px">Tourist Visa · London</div>
+              <div style="font-size:11px;color:var(--ink4);margin-top:4px">14 days remaining</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Quick Actions</div>
+            <div class="card-sub">Common tasks</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="showSection('new-application',document.querySelectorAll('.sb-item')[2])">+ Start New Application</button>
+              <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="showSection('track',document.querySelectorAll('.sb-item')[5])">🔍 Track Application</button>
+              <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="showSection('payments',document.querySelectorAll('.sb-item')[4])">💳 Make Payment</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MY APPLICATIONS ── -->
+    <div class="section" id="section-applications">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:var(--ink)">My Applications</div>
+          <div style="font-size:13px;color:var(--ink4);margin-top:2px">All your visa applications in one place</div>
+        </div>
+        <button class="btn btn-primary" onclick="showSection('new-application',document.querySelectorAll('.sb-item')[2])">+ New Application</button>
+      </div>
+      <!-- Filter tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:18px">
+        <button class="btn btn-primary" style="padding:6px 14px;font-size:12px" onclick="filterApps('all',this)">All (5)</button>
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:12px" onclick="filterApps('approved',this)">Approved</button>
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:12px" onclick="filterApps('under_review',this)">In Review</button>
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:12px" onclick="filterApps('submitted',this)">Submitted</button>
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:12px" onclick="filterApps('rejected',this)">Rejected</button>
+      </div>
+      <div class="app-list" id="all-apps"></div>
+    </div>
+
+    <!-- ── NEW APPLICATION ── -->
+    <div class="section" id="section-new-application">
+      <div style="margin-bottom:20px">
+        <div style="font-size:18px;font-weight:700;color:var(--ink)">New Visa Application</div>
+        <div style="font-size:13px;color:var(--ink4);margin-top:2px">Complete all steps to submit your application</div>
+      </div>
+      <!-- Progress steps -->
+      <div class="form-steps" id="form-steps">
+        <div class="step-item"><div class="step-num active" id="sn1">1</div><div class="step-lbl active" id="sl1">Visa Type</div></div>
+        <div class="step-connector" id="sc1"></div>
+        <div class="step-item"><div class="step-num" id="sn2">2</div><div class="step-lbl" id="sl2">Personal Info</div></div>
+        <div class="step-connector" id="sc2"></div>
+        <div class="step-item"><div class="step-num" id="sn3">3</div><div class="step-lbl" id="sl3">Travel Details</div></div>
+        <div class="step-connector" id="sc3"></div>
+        <div class="step-item"><div class="step-num" id="sn4">4</div><div class="step-lbl" id="sl4">Documents</div></div>
+        <div class="step-connector" id="sc4"></div>
+        <div class="step-item"><div class="step-num" id="sn5">5</div><div class="step-lbl" id="sl5">Review</div></div>
+      </div>
+
+      <!-- Step 1: Visa Type -->
+      <div id="form-step1">
+        <div class="form-card">
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px">Select Visa Type</div>
+          <div style="font-size:12px;color:var(--ink4);margin-bottom:18px">Choose the visa category that matches your purpose of visit</div>
+          <div class="visa-type-grid">
+            <div class="vt-card" onclick="selectVisa(this,'Tourist','TV','₹8,500','90 days')"><div style="font-size:22px;margin-bottom:6px">🏖️</div><div class="vt-name">Tourist</div><div class="vt-fee">₹8,500</div><div class="vt-days">Up to 90 days</div></div>
+            <div class="vt-card" onclick="selectVisa(this,'Student','SV','₹5,200','1 year')"><div style="font-size:22px;margin-bottom:6px">🎓</div><div class="vt-name">Student</div><div class="vt-fee">₹5,200</div><div class="vt-days">Up to 1 year</div></div>
+            <div class="vt-card" onclick="selectVisa(this,'Work','WV','₹12,000','2 years')"><div style="font-size:22px;margin-bottom:6px">💼</div><div class="vt-name">Work</div><div class="vt-fee">₹12,000</div><div class="vt-days">Up to 2 years</div></div>
+            <div class="vt-card" onclick="selectVisa(this,'Business','BV','₹9,500','180 days')"><div style="font-size:22px;margin-bottom:6px">🤝</div><div class="vt-name">Business</div><div class="vt-fee">₹9,500</div><div class="vt-days">Up to 180 days</div></div>
+            <div class="vt-card" onclick="selectVisa(this,'Transit','TR','₹2,000','5 days')"><div style="font-size:22px;margin-bottom:6px">✈️</div><div class="vt-name">Transit</div><div class="vt-fee">₹2,000</div><div class="vt-days">Up to 5 days</div></div>
+            <div class="vt-card" onclick="selectVisa(this,'Medical','MV','₹4,500','60 days')"><div style="font-size:22px;margin-bottom:6px">🏥</div><div class="vt-name">Medical</div><div class="vt-fee">₹4,500</div><div class="vt-days">Up to 60 days</div></div>
+          </div>
+          <div id="vt-err" class="err-msg">Please select a visa type.</div>
+        </div>
+        <div class="form-actions"><span></span><button class="btn btn-primary" onclick="nextStep(2)">Continue →</button></div>
+      </div>
+
+      <!-- Step 2: Personal -->
+      <div id="form-step2" style="display:none">
+        <div class="form-card">
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px">Personal Information</div>
+          <div style="font-size:12px;color:var(--ink4);margin-bottom:18px">Exactly as printed on your passport</div>
+          <div class="form-grid">
+            <div class="field"><label>First Name</label><input id="f-fname" placeholder="John"><div class="err-msg" id="e-fname">Required</div></div>
+            <div class="field"><label>Last Name</label><input id="f-lname" placeholder="Doe"><div class="err-msg" id="e-lname">Required</div></div>
+            <div class="field"><label>Date of Birth</label><input id="f-dob" type="date"><div class="err-msg" id="e-dob">Must be 18+</div></div>
+            <div class="field"><label>Gender</label><select id="f-gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select><div class="err-msg" id="e-gender">Required</div></div>
+            <div class="field"><label>Nationality</label><select id="f-nat"><option value="">Select</option><option>Indian</option><option>American</option><option>British</option><option>Australian</option><option>Other</option></select><div class="err-msg" id="e-nat">Required</div></div>
+            <div class="field"><label>Passport Number</label><input id="f-pass" placeholder="A1234567"><div class="err-msg" id="e-pass">Required</div></div>
+            <div class="field"><label>Passport Expiry</label><input id="f-pexp" type="date"><div class="err-msg" id="e-pexp">Must be valid 6+ months</div></div>
+            <div class="field"><label>Phone Number</label><input id="f-phone" placeholder="+91 98765 43210"><div class="err-msg" id="e-phone">Required</div></div>
+            <div class="field full"><label>Email Address</label><input id="f-email" type="email" placeholder="john@example.com"><div class="err-msg" id="e-email">Valid email required</div></div>
+          </div>
+        </div>
+        <div class="form-actions"><button class="btn btn-outline" onclick="nextStep(1)">← Back</button><button class="btn btn-primary" onclick="nextStep(3)">Continue →</button></div>
+      </div>
+
+      <!-- Step 3: Travel -->
+      <div id="form-step3" style="display:none">
+        <div class="form-card">
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px">Travel Details</div>
+          <div style="font-size:12px;color:var(--ink4);margin-bottom:18px">Information about your planned trip</div>
+          <div class="form-grid">
+            <div class="field"><label>Arrival Date</label><input id="f-travel" type="date"><div class="err-msg" id="e-travel">Required</div></div>
+            <div class="field"><label>Departure Date</label><input id="f-return" type="date"><div class="err-msg" id="e-return">Must be after arrival</div></div>
+            <div class="field full"><label>Port of Entry</label><select id="f-port"><option value="">Select airport / border</option><option>Indira Gandhi International Airport, Delhi</option><option>Chhatrapati Shivaji Airport, Mumbai</option><option>Kempegowda Airport, Bengaluru</option><option>Chennai International Airport</option><option>Kolkata International Airport</option><option>Land border – Wagah</option></select><div class="err-msg" id="e-port">Required</div></div>
+            <div class="field full"><label>Accommodation Address</label><input id="f-accom" placeholder="Hotel / host address in destination"><div class="err-msg" id="e-accom">Required</div></div>
+            <div class="field full"><label>Purpose of Visit</label><textarea id="f-purpose" rows="3" placeholder="Briefly describe your reason for visiting..."></textarea><div class="err-msg" id="e-purpose">Required (min 20 chars)</div></div>
+            <div class="field"><label>Previously Refused a Visa?</label><select id="f-refused"><option value="no">No</option><option value="yes">Yes</option></select></div>
+          </div>
+        </div>
+        <div class="form-actions"><button class="btn btn-outline" onclick="nextStep(2)">← Back</button><button class="btn btn-primary" onclick="nextStep(4)">Continue →</button></div>
+      </div>
+
+      <!-- Step 4: Documents -->
+      <div id="form-step4" style="display:none">
+        <div class="form-card">
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px">Upload Documents</div>
+          <div style="font-size:12px;color:var(--ink4);margin-bottom:18px">Required documents for your selected visa type (PDF or JPG, max 5MB each)</div>
+          <div id="doc-upload-list"></div>
+        </div>
+        <div class="form-actions"><button class="btn btn-outline" onclick="nextStep(3)">← Back</button><button class="btn btn-primary" onclick="nextStep(5)">Continue →</button></div>
+      </div>
+
+      <!-- Step 5: Review & Submit -->
+      <div id="form-step5" style="display:none">
+        <div class="form-card" id="review-card">
+          <div style="font-size:15px;font-weight:700;margin-bottom:16px">Review Your Application</div>
+          <div id="review-content"></div>
+          <div style="background:var(--amber-soft);border:1px solid var(--amber-mid);border-radius:var(--radius-sm);padding:12px 16px;margin-top:16px">
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--ink2)">
+              <input type="checkbox" id="f-declare" style="margin-top:2px;accent-color:var(--teal)">
+              <span>I declare that all information provided is true and accurate. I understand that false information may result in rejection and possible legal consequences.</span>
+            </label>
+          </div>
+          <div id="declare-err" class="err-msg" style="margin-top:6px">You must accept the declaration.</div>
+        </div>
+        <div class="form-actions"><button class="btn btn-outline" onclick="nextStep(4)">← Back</button><button class="btn btn-primary" style="background:#0d7d6b" onclick="submitApp()">Submit Application ✓</button></div>
+      </div>
+
+      <!-- Success -->
+      <div id="form-success" style="display:none">
+        <div class="form-card">
+          <div class="success-screen">
+            <div class="success-icon">✅</div>
+            <div style="font-size:20px;font-weight:800;color:var(--ink);margin-bottom:6px">Application Submitted!</div>
+            <div style="font-size:13px;color:var(--ink4)">Your application is now under review.</div>
+            <div class="ref-chip" id="new-ref">VA-2024-XXXXXX</div>
+            <div style="font-size:12px;color:var(--ink4);margin-bottom:20px">Save this reference number for tracking</div>
+            <button class="btn btn-primary" onclick="showSection('applications',document.querySelectorAll('.sb-item')[1])">View My Applications</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DOCUMENTS ── -->
+    <div class="section" id="section-documents">
+      <div style="margin-bottom:20px">
+        <div style="font-size:18px;font-weight:700;color:var(--ink)">My Documents</div>
+        <div style="font-size:13px;color:var(--ink4);margin-top:2px">All uploaded documents across your applications</div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div class="card-title">Application Documents</div>
+          <span class="badge badge-approved">4 Approved</span>
+        </div>
+        <div id="docs-list"></div>
+      </div>
+    </div>
+
+    <!-- ── PAYMENTS ── -->
+    <div class="section" id="section-payments">
+      <div style="margin-bottom:20px">
+        <div style="font-size:18px;font-weight:700;color:var(--ink)">Payments</div>
+        <div style="font-size:13px;color:var(--ink4);margin-top:2px">Manage your application fees</div>
+      </div>
+      <!-- Pending payment alert -->
+      <div style="background:var(--amber-soft);border:1px solid var(--amber-mid);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--amber)">⚠ Payment Due</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:2px">Tourist Visa application (VA-2024-F6K8P7) — ₹8,500 pending</div>
+        </div>
+        <button class="btn btn-primary" style="background:var(--amber);white-space:nowrap" onclick="openPayModal()">Pay Now</button>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:14px">Payment History</div>
+        <div id="payment-history"></div>
+      </div>
+    </div>
+
+    <!-- ── TRACK ── -->
+    <div class="section" id="section-track">
+      <div style="margin-bottom:20px">
+        <div style="font-size:18px;font-weight:700;color:var(--ink)">Track Application Status</div>
+        <div style="font-size:13px;color:var(--ink4);margin-top:2px">Enter your reference number to check status</div>
+      </div>
+      <div class="track-hero">
+        <div style="font-size:16px;font-weight:700;margin-bottom:4px">Application Tracker</div>
+        <div style="font-size:12px;color:var(--ink4);margin-bottom:20px">Enter your reference number and registered email</div>
+        <div style="display:flex;gap:10px;margin-bottom:12px">
+          <input id="track-ref" placeholder="Reference number (VA-2024-XXXXXX)" style="flex:1;padding:10px 14px;border:1px solid var(--sand3);border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;outline:none">
+          <input id="track-email" placeholder="Email address" style="flex:1;padding:10px 14px;border:1px solid var(--sand3);border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;outline:none">
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doTrack()">Track Application</button>
+      </div>
+      <div id="track-result" style="display:none">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div><div class="card-title" id="tr-visa">Tourist Visa Application</div><div style="font-family:var(--mono);font-size:11px;color:var(--teal);margin-top:2px" id="tr-ref">VA-2024-A1B2C3</div></div>
+            <div id="tr-badge"></div>
+          </div>
+          <!-- Visual stepper -->
+          <div class="track-steps" id="tr-stepper" style="margin-bottom:20px"></div>
+          <div class="timeline" id="tr-timeline"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NOTIFICATIONS ── -->
+    <div class="section" id="section-notifications">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:var(--ink)">Notifications</div>
+          <div style="font-size:13px;color:var(--ink4);margin-top:2px">2 unread notifications</div>
+        </div>
+        <button class="btn btn-outline" style="font-size:12px" onclick="markAllRead()">Mark all read</button>
+      </div>
+      <div class="card" id="notif-list"></div>
+    </div>
+
+    <!-- ── PROFILE ── -->
+    <div class="section" id="section-profile">
+      <div style="margin-bottom:20px">
+        <div style="font-size:18px;font-weight:700;color:var(--ink)">My Profile</div>
+        <div style="font-size:13px;color:var(--ink4);margin-top:2px">Manage your personal information and settings</div>
+      </div>
+      <div class="grid2">
+        <div>
+          <div class="form-card" style="margin-bottom:14px">
+            <div style="font-size:14px;font-weight:700;margin-bottom:16px">Personal Details</div>
+            <div class="form-grid">
+              <div class="field"><label>Full Name</label><input value="Arjun Mehta"></div>
+              <div class="field"><label>Phone</label><input value="+91 98765 43210"></div>
+              <div class="field full"><label>Email Address</label><input value="arjun@example.com" type="email"></div>
+              <div class="field"><label>Date of Birth</label><input value="1990-06-15" type="date"></div>
+              <div class="field"><label>Nationality</label><select><option selected>Indian</option><option>American</option></select></div>
+            </div>
+            <div style="margin-top:14px"><button class="btn btn-primary">Save Changes</button></div>
+          </div>
+          <div class="form-card">
+            <div style="font-size:14px;font-weight:700;margin-bottom:16px">Change Password</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="field"><label>Current Password</label><input type="password" placeholder="••••••••"></div>
+              <div class="field"><label>New Password</label><input type="password" placeholder="••••••••"></div>
+              <div class="field"><label>Confirm New Password</label><input type="password" placeholder="••••••••"></div>
+            </div>
+            <div style="margin-top:14px"><button class="btn btn-primary">Update Password</button></div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="text-align:center;margin-bottom:14px">
+            <div class="sb-avatar" style="width:72px;height:72px;font-size:28px;margin:0 auto 12px">AR</div>
+            <div style="font-size:16px;font-weight:700">Arjun Mehta</div>
+            <div style="font-size:12px;color:var(--ink4);margin-top:3px">arjun@example.com</div>
+            <div style="margin-top:12px"><span class="badge badge-approved">Verified Applicant</span></div>
+            <button class="btn btn-outline" style="margin-top:14px;width:100%;justify-content:center">Upload Photo</button>
+          </div>
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;margin-bottom:12px">Notification Preferences</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <label style="display:flex;align-items:center;justify-content:space-between;font-size:13px;cursor:pointer">Email updates<input type="checkbox" checked style="accent-color:var(--teal)"></label>
+              <label style="display:flex;align-items:center;justify-content:space-between;font-size:13px;cursor:pointer">SMS alerts<input type="checkbox" style="accent-color:var(--teal)"></label>
+              <label style="display:flex;align-items:center;justify-content:space-between;font-size:13px;cursor:pointer">Status changes<input type="checkbox" checked style="accent-color:var(--teal)"></label>
+              <label style="display:flex;align-items:center;justify-content:space-between;font-size:13px;cursor:pointer">Payment reminders<input type="checkbox" checked style="accent-color:var(--teal)"></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Application Detail Panel -->
+<div class="detail-overlay" id="detail-overlay" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-panel">
+    <div class="dp-header">
+      <div><div class="dp-title" id="dp-title">Application Details</div><div class="dp-ref" id="dp-ref"></div></div>
+      <div class="dp-close" onclick="closeDetail()">×</div>
+    </div>
+    <div class="dp-body" id="dp-body"></div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="detail-overlay" id="pay-modal" onclick="if(event.target===this)closePayModal()">
+  <div class="detail-panel" style="width:440px">
+    <div class="dp-header">
+      <div><div class="dp-title">Complete Payment</div><div class="dp-ref">Tourist Visa — VA-2024-F6K8P7</div></div>
+      <div class="dp-close" onclick="closePayModal()">×</div>
+    </div>
+    <div class="dp-body">
+      <div style="background:var(--sand);border-radius:var(--radius-sm);padding:14px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:var(--ink3)">Application Fee</span>
+        <span style="font-size:20px;font-weight:800;color:var(--teal)">₹8,500</span>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Select Payment Method</div>
+      <div class="gateway-card selected" onclick="selectGateway(this)">
+        <div class="gateway-logo gw-rp">RZP</div>
+        <div><div class="gateway-name">Razorpay</div><div class="gateway-desc">Credit / Debit Card · UPI · Net Banking</div></div>
+      </div>
+      <div class="gateway-card" onclick="selectGateway(this)">
+        <div class="gateway-logo gw-stripe">S</div>
+        <div><div class="gateway-name">Stripe</div><div class="gateway-desc">International Cards · USD / EUR / GBP</div></div>
+      </div>
+      <div class="gateway-card" onclick="selectGateway(this)">
+        <div class="gateway-logo gw-pp">PP</div>
+        <div><div class="gateway-name">PayPal</div><div class="gateway-desc">PayPal balance · Linked bank account</div></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px" onclick="fakePayment()">Pay ₹8,500 Securely →</button>
+      <div style="text-align:center;font-size:11px;color:var(--ink4);margin-top:10px">🔒 Secured with 256-bit SSL encryption</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const appData=[
+  {ref:'VA-2024-A1F3K2',visa:'Tourist Visa',status:'under_review',travel:'Jan 14, 2025',return:'Jan 28, 2025',port:'Delhi Airport',passport:'M1234567',pexp:'Dec 2027',nat:'Indian',purpose:'Tourism and sightseeing.',fname:'Arjun',lname:'Mehta',dob:'1990-06-15',phone:'+91 98765 43210',email:'arjun@example.com',docs:[{n:'Passport',s:'approved'},{n:'Photo',s:'approved'},{n:'Bank Statement',s:'pending'}],history:[{status:'Under Review',note:'Assigned to Officer Priya Mehta',time:'Dec 19, 2024, 11:05 AM',color:'#c8860a'},{status:'Submitted',note:'Application submitted by applicant',time:'Dec 18, 2024, 09:42 AM',color:'#1a5fa8'}],payment:{status:'pending',amount:'₹8,500'}},
+  {ref:'VA-2024-B2G4L3',visa:'Student Visa',status:'approved',travel:'Feb 1, 2025',return:'Dec 31, 2025',port:'Mumbai Airport',passport:'M2345678',pexp:'Mar 2028',nat:'Indian',purpose:'Graduate studies at University of London.',fname:'Arjun',lname:'Mehta',dob:'1990-06-15',phone:'+91 98765 43210',email:'arjun@example.com',docs:[{n:'Passport',s:'approved'},{n:'Photo',s:'approved'},{n:'Admission Letter',s:'approved'},{n:'Bank Statement',s:'approved'}],history:[{status:'Approved',note:'All documents verified. Application approved.',time:'Dec 10, 2024, 03:00 PM',color:'#0d7d6b'},{status:'Under Review',note:'Documents under review',time:'Dec 5, 2024, 10:00 AM',color:'#c8860a'},{status:'Submitted',note:'',time:'Dec 3, 2024, 08:00 AM',color:'#1a5fa8'}],payment:{status:'paid',amount:'₹5,200'}},
+  {ref:'VA-2024-C3H5M4',visa:'Tourist Visa',status:'rejected',travel:'Nov 20, 2024',return:'Dec 4, 2024',port:'Bengaluru Airport',passport:'M3456789',pexp:'Dec 2027',nat:'Indian',purpose:'Holiday trip.',fname:'Arjun',lname:'Mehta',dob:'1990-06-15',phone:'+91 98765 43210',email:'arjun@example.com',docs:[{n:'Passport',s:'approved'},{n:'Photo',s:'approved'},{n:'Bank Statement',s:'rejected'}],history:[{status:'Rejected',note:'Insufficient bank statement. Balance not meeting minimum requirement.',time:'Nov 15, 2024, 02:00 PM',color:'#c0392b'},{status:'Under Review',note:'',time:'Nov 10, 2024',color:'#c8860a'},{status:'Submitted',note:'',time:'Nov 8, 2024',color:'#1a5fa8'}],payment:{status:'paid',amount:'₹8,500'}},
+  {ref:'VA-2024-F6K8P7',visa:'Tourist Visa',status:'submitted',travel:'Mar 10, 2025',return:'Mar 24, 2025',port:'Delhi Airport',passport:'M1234567',pexp:'Dec 2027',nat:'Indian',purpose:'Tourism.',fname:'Arjun',lname:'Mehta',dob:'1990-06-15',phone:'+91 98765 43210',email:'arjun@example.com',docs:[{n:'Passport',s:'approved'},{n:'Photo',s:'approved'}],history:[{status:'Submitted',note:'',time:'Dec 20, 2024, 10:00 AM',color:'#1a5fa8'}],payment:{status:'pending',amount:'₹8,500'}},
+  {ref:'VA-2024-G7L9Q8',visa:'Work Visa',status:'draft',travel:'Apr 1, 2025',return:'Apr 1, 2027',port:'Mumbai Airport',passport:'M1234567',pexp:'Dec 2027',nat:'Indian',purpose:'Software engineer role at Tech Corp London.',fname:'Arjun',lname:'Mehta',dob:'1990-06-15',phone:'+91 98765 43210',email:'arjun@example.com',docs:[],history:[],payment:{status:'pending',amount:'₹12,000'}},
+];
+
+const statusMap={approved:{label:'Approved',cls:'badge-approved',cardCls:'approved'},under_review:{label:'Under Review',cls:'badge-review',cardCls:'under_review'},submitted:{label:'Submitted',cls:'badge-submitted',cardCls:'submitted'},rejected:{label:'Rejected',cls:'badge-rejected',cardCls:'rejected'},draft:{label:'Draft',cls:'badge-draft',cardCls:'draft'},additional_docs:{label:'Docs Required',cls:'badge-docs',cardCls:'additional_docs'}};
+
+function badge(status){const s=statusMap[status]||{label:status,cls:'badge-draft'};return`<span class="badge ${s.cls}">${s.label}</span>`}
+
+function renderAppCard(a){
+  const s=statusMap[a.status]||{};
+  const docPct=a.docs.length?Math.round(a.docs.filter(d=>d.s==='approved').length/a.docs.length*100):0;
+  return`<div class="app-card ${s.cardCls||''}" onclick="openDetail('${a.ref}')">
+    <div class="app-card-row"><span class="app-ref">${a.ref}</span>${badge(a.status)}</div>
+    <div class="app-title">${a.visa}</div>
+    <div class="app-meta">✈ ${a.travel} → ${a.return} &nbsp;·&nbsp; ${a.port}</div>
+    <div class="app-footer">
+      <div style="font-size:11px;color:var(--ink4)">${a.docs.length} doc${a.docs.length!==1?'s':''} uploaded</div>
+      <span style="font-size:12px;font-weight:600;${a.payment.status==='paid'?'color:var(--teal)':'color:var(--amber)'}">${a.payment.status==='paid'?'✓ Paid':'⚠ Payment due'}</span>
+    </div>
+    ${a.docs.length?`<div class="progress-bar"><div class="progress-fill" style="width:${docPct}%;background:${docPct===100?'var(--teal)':'var(--amber)'}"></div></div>`:''}
+  </div>`;
+}
+
+function renderApps(filter='all'){
+  const filtered=filter==='all'?appData:appData.filter(a=>a.status===filter);
+  return filtered.map(renderAppCard).join('')||'<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No applications</div><div class="empty-sub">No applications match this filter.</div></div>';
+}
+
+function filterApps(f,btn){
+  document.querySelectorAll('#section-applications .btn').forEach(b=>{b.className='btn btn-outline';b.style.cssText='padding:6px 14px;font-size:12px'});
+  btn.className='btn btn-primary'; btn.style.cssText='padding:6px 14px;font-size:12px';
+  document.getElementById('all-apps').innerHTML=renderApps(f);
+}
+
+// Documents page
+const allDocs=[
+  {app:'VA-2024-A1F3K2',name:'Passport (bio-data page)',type:'PDF',size:'1.2 MB',status:'approved'},
+  {app:'VA-2024-A1F3K2',name:'Recent Photograph',type:'JPG',size:'0.4 MB',status:'approved'},
+  {app:'VA-2024-A1F3K2',name:'Bank Statement',type:'PDF',size:'2.1 MB',status:'pending'},
+  {app:'VA-2024-B2G4L3',name:'Admission Letter',type:'PDF',size:'0.9 MB',status:'approved'},
+  {app:'VA-2024-B2G4L3',name:'Fee Receipt',type:'PDF',size:'0.5 MB',status:'approved'},
+  {app:'VA-2024-C3H5M4',name:'Bank Statement',type:'PDF',size:'1.8 MB',status:'rejected'},
+];
+
+function renderDocs(){
+  return allDocs.map(d=>`<div class="doc-item">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="doc-icon">${d.type==='PDF'?'📄':'🖼️'}</div>
+      <div><div class="doc-name">${d.name}</div><div class="doc-meta">${d.app} · ${d.type} · ${d.size}</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      ${badge(d.status==='approved'?'approved':d.status==='rejected'?'rejected':'submitted')}
+      <button class="upload-btn">View</button>
+    </div>
+  </div>`).join('');
+}
+
+// Payments
+const payments=[
+  {ref:'VA-2024-B2G4L3',type:'Student Visa',amount:'₹5,200',status:'paid',method:'Razorpay',date:'Dec 3, 2024',txn:'TXN-ABCD1234EF'},
+  {ref:'VA-2024-C3H5M4',type:'Tourist Visa',amount:'₹8,500',status:'paid',method:'Stripe',date:'Nov 8, 2024',txn:'TXN-XYZ9876WQ'},
+  {ref:'VA-2024-F6K8P7',type:'Tourist Visa',amount:'₹8,500',status:'pending',method:'—',date:'Dec 20, 2024',txn:'—'},
+];
+
+function renderPayments(){
+  return`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="background:var(--sand);border-bottom:1px solid var(--sand3)">
+      <th style="text-align:left;padding:10px 12px;font-size:10px;color:var(--ink4);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Reference</th>
+      <th style="text-align:left;padding:10px 12px;font-size:10px;color:var(--ink4);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Visa Type</th>
+      <th style="text-align:left;padding:10px 12px;font-size:10px;color:var(--ink4);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Amount</th>
+      <th style="text-align:left;padding:10px 12px;font-size:10px;color:var(--ink4);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Method</th>
+      <th style="text-align:left;padding:10px 12px;font-size:10px;color:var(--ink4);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Date</th>
+      <th style="text-align:left;padding:10px 12px;font-size:10px;color:var(--ink4);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Status</th>
+      <th style="padding:10px 12px"></th>
+    </tr></thead>
+    <tbody>${payments.map(p=>`<tr style="border-bottom:1px solid var(--sand3);hover:background:var(--sand)">
+      <td style="padding:12px 12px;font-family:var(--mono);color:var(--teal);font-size:11px">${p.ref}</td>
+      <td style="padding:12px 12px;color:var(--ink)">${p.type}</td>
+      <td style="padding:12px 12px;font-weight:700;color:var(--ink)">${p.amount}</td>
+      <td style="padding:12px 12px;color:var(--ink3)">${p.method}</td>
+      <td style="padding:12px 12px;color:var(--ink3)">${p.date}</td>
+      <td style="padding:12px 12px">${badge(p.status==='paid'?'approved':'submitted')}</td>
+      <td style="padding:12px 12px">${p.status==='paid'?'<button class="upload-btn">Receipt</button>':'<button class="upload-btn" style="border-color:var(--amber);color:var(--amber)" onclick="openPayModal()">Pay Now</button>'}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// Notifications
+const notifs=[
+  {unread:true,color:'var(--teal)',title:'Application under review',desc:'VA-2024-A1F3K2 has been assigned to Officer Priya Mehta.',time:'2 hours ago'},
+  {unread:true,color:'var(--amber)',title:'Action required',desc:'Bank statement for VA-2024-A1F3K2 is still pending. Please upload.',time:'5 hours ago'},
+  {unread:false,color:'var(--teal)',title:'Student Visa Approved!',desc:'Congratulations! VA-2024-B2G4L3 has been approved. Download your letter.',time:'Dec 10, 2024'},
+  {unread:false,color:'var(--red)',title:'Application Rejected',desc:'VA-2024-C3H5M4 has been rejected. See rejection reason for details.',time:'Nov 15, 2024'},
+  {unread:false,color:'var(--blue)',title:'Payment confirmed',desc:'Payment of ₹5,200 for VA-2024-B2G4L3 has been received.',time:'Dec 3, 2024'},
+];
+
+function renderNotifs(){
+  return notifs.map(n=>`<div class="notif-item">
+    <div class="notif-dot-indicator" style="background:${n.color};${!n.unread?'opacity:.3':''}"></div>
+    <div style="flex:1">
+      <div class="notif-title" style="${!n.unread?'font-weight:500;':''}${!n.unread?'color:var(--ink3)':''}">${n.title}${n.unread?' <span style="font-size:9px;background:var(--teal);color:#fff;padding:1px 5px;border-radius:20px;font-weight:700">NEW</span>':''}</div>
+      <div class="notif-desc">${n.desc}</div>
+      <div class="notif-time">${n.time}</div>
+    </div>
+  </div>`).join('');
+}
+
+function markAllRead(){notifs.forEach(n=>n.unread=false);document.getElementById('notif-list').innerHTML=renderNotifs();}
+
+// Detail panel
+function openDetail(ref){
+  const a=appData.find(x=>x.ref===ref);
+  if(!a)return;
+  document.getElementById('dp-title').textContent=a.visa;
+  document.getElementById('dp-ref').textContent=a.ref;
+  const docsHtml=a.docs.map(d=>`<div class="doc-item">
+    <div style="display:flex;align-items:center;gap:8px"><div class="doc-icon">📄</div><div><div class="doc-name">${d.n}</div></div></div>
+    <div style="display:flex;gap:6px">${badge(d.s==='approved'?'approved':d.s==='rejected'?'rejected':'submitted')}<button class="upload-btn">${d.s==='pending'?'Upload':'View'}</button></div>
+  </div>`).join('')||'<div style="font-size:13px;color:var(--ink4)">No documents uploaded.</div>';
+  const histHtml=a.history.map((h,i)=>`<div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:${h.color}"></div>${i<a.history.length-1?'<div class="tl-line"></div>':''}</div><div><div class="tl-text">${h.status}</div>${h.note?`<div class="tl-note">${h.note}</div>`:''}<div class="tl-time">${h.time}</div></div></div>`).join('');
+  document.getElementById('dp-body').innerHTML=`
+    <div class="dp-section"><div class="dp-section-title">Status</div><div style="display:flex;align-items:center;gap:10px">${badge(a.status)}${a.payment.status==='paid'?badge('approved')+'<span style="font-size:12px;color:var(--teal)">Paid '+a.payment.amount+'</span>':'<span class="badge badge-pending">⚠ Payment due — '+a.payment.amount+'</span>'}</div></div>
+    <div class="dp-section"><div class="dp-section-title">Application Details</div><div class="info-grid">
+      <div class="info-field"><label>Visa Type</label><span>${a.visa}</span></div>
+      <div class="info-field"><label>Reference</label><span style="font-family:var(--mono);font-size:11px">${a.ref}</span></div>
+      <div class="info-field"><label>Travel Date</label><span>${a.travel}</span></div>
+      <div class="info-field"><label>Return Date</label><span>${a.return}</span></div>
+      <div class="info-field"><label>Port of Entry</label><span>${a.port}</span></div>
+      <div class="info-field"><label>Passport No.</label><span style="font-family:var(--mono)">${a.passport}</span></div>
+      <div class="info-field full"><label>Purpose</label><span>${a.purpose}</span></div>
+    </div></div>
+    <div class="dp-section"><div class="dp-section-title">Documents</div>${docsHtml}</div>
+    <div class="dp-section"><div class="dp-section-title">Application History</div><div class="timeline">${histHtml||'<div style="font-size:13px;color:var(--ink4)">No history yet.</div>'}</div></div>
+    ${a.status==='approved'?'<button class="btn btn-primary" style="width:100%;justify-content:center">⬇ Download Approval Letter</button>':''}
+    ${a.status==='submitted'||a.status==='draft'?'<button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red);border-color:var(--red)" onclick="closeDetail()">Cancel Application</button>':''}
+  `;
+  document.getElementById('detail-overlay').classList.add('open');
+}
+function closeDetail(){document.getElementById('detail-overlay').classList.remove('open')}
+
+// Payment modal
+function openPayModal(){document.getElementById('pay-modal').classList.add('open')}
+function closePayModal(){document.getElementById('pay-modal').classList.remove('open')}
+function selectGateway(el){document.querySelectorAll('.gateway-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected')}
+function fakePayment(){closePayModal();appData[3].payment.status='paid';document.getElementById('all-apps').innerHTML=renderApps('all');document.getElementById('payment-history').innerHTML=renderPayments();alert('✅ Payment successful! ₹8,500 received for VA-2024-F6K8P7')}
+
+// Section navigation
+function showSection(id, el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const titles={dashboard:'Dashboard',applications:'My Applications','new-application':'New Application',documents:'My Documents',payments:'Payments',track:'Track Status',notifications:'Notifications',profile:'My Profile'};
+  document.getElementById('page-title').textContent=titles[id]||id;
+  if(id==='applications') document.getElementById('all-apps').innerHTML=renderApps();
+  if(id==='documents') document.getElementById('docs-list').innerHTML=renderDocs();
+  if(id==='payments') document.getElementById('payment-history').innerHTML=renderPayments();
+  if(id==='notifications') document.getElementById('notif-list').innerHTML=renderNotifs();
+  if(id==='dashboard'){
+    document.getElementById('dash-apps').innerHTML=appData.slice(0,3).map(renderAppCard).join('');
+  }
+}
+
+// New application form
+let currentStep=1, selectedVisa=null, docUploaded={};
+const docSets={Tourist:['Passport (bio-data page)','Recent passport photo','Return flight ticket','Hotel booking','Bank statement (3 months)'],Student:['Passport (bio-data page)','Recent passport photo','Admission letter','Fee receipt','Sponsor letter'],Work:['Passport (bio-data page)','Recent passport photo','Employment contract','Company registration','Qualifications'],Business:['Passport (bio-data page)','Recent passport photo','Business invitation','Company letter','Bank statement'],Transit:['Passport (bio-data page)','Recent passport photo','Onward ticket','Destination visa'],Medical:['Passport (bio-data page)','Recent passport photo','Medical appointment letter','Hospital letter','Financial proof']};
+
+function selectVisa(el,name,code,fee,days){
+  document.querySelectorAll('.vt-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedVisa={name,code,fee,days};
+  document.getElementById('vt-err').classList.remove('show');
+}
+
+function nextStep(n){
+  if(n>currentStep){
+    if(currentStep===1&&!selectedVisa){document.getElementById('vt-err').classList.add('show');return}
+    if(currentStep===2){
+      const fields=['fname','lname','dob','gender','nat','pass','pexp','phone','email'];
+      let ok=true;
+      fields.forEach(f=>{
+        const v=document.getElementById('f-'+f).value.trim();
+        const e=document.getElementById('e-'+f);
+        if(!v){document.getElementById('f-'+f).classList.add('err');e.classList.add('show');ok=false}
+        else{document.getElementById('f-'+f).classList.remove('err');e.classList.remove('show')}
+      });
+      if(!ok)return;
+    }
+    if(currentStep===3){
+      const fields=['travel','return','port','accom','purpose'];
+      let ok=true;
+      fields.forEach(f=>{
+        const v=document.getElementById('f-'+f).value.trim();
+        const e=document.getElementById('e-'+f);
+        if(!v){document.getElementById('f-'+f).classList.add('err');e.classList.add('show');ok=false}
+        else{document.getElementById('f-'+f).classList.remove('err');e.classList.remove('show')}
+      });
+      if(!ok)return;
+    }
+    if(n===4) buildDocUpload();
+    if(n===5) buildReview();
+  }
+  document.getElementById('form-step'+currentStep).style.display='none';
+  currentStep=n;
+  document.getElementById('form-step'+n).style.display='block';
+  updateStepUI();
+}
+
+function updateStepUI(){
+  for(let i=1;i<=5;i++){
+    const sn=document.getElementById('sn'+i);
+    const sl=document.getElementById('sl'+i);
+    if(i<currentStep){sn.className='step-num done';sn.textContent='✓';sl.className='step-lbl'}
+    else if(i===currentStep){sn.className='step-num active';sn.textContent=i;sl.className='step-lbl active'}
+    else{sn.className='step-num';sn.textContent=i;sl.className='step-lbl'}
+    if(i<5) document.getElementById('sc'+i).className='step-connector'+(i<currentStep?' done':'');
+  }
+}
+
+function buildDocUpload(){
+  const docs=(selectedVisa&&docSets[selectedVisa.name])||[];
+  document.getElementById('doc-upload-list').innerHTML=docs.map(d=>`<div class="doc-item">
+    <div style="display:flex;align-items:center;gap:10px"><div class="doc-icon">${docUploaded[d]?'📄':'📁'}</div>
+    <div><div class="doc-name">${d}</div><div class="doc-meta">${docUploaded[d]?'Uploaded':'Not uploaded yet'}</div></div></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      ${docUploaded[d]?'<span class="badge badge-approved">Uploaded</span>':'<span class="badge badge-draft">Pending</span>'}
+      <button class="upload-btn" onclick="fakeDocUpload('${d}',this)">${docUploaded[d]?'Replace':'Upload'}</button>
+    </div>
+  </div>`).join('');
+}
+
+function fakeDocUpload(name,btn){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.pdf,.jpg,.jpeg,.png';
+  inp.onchange=()=>{if(inp.files[0]){docUploaded[name]=true;buildDocUpload()}};inp.click();
+}
+
+function buildReview(){
+  const v=id=>document.getElementById('f-'+id)?document.getElementById('f-'+id).value:'';
+  document.getElementById('review-content').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div class="info-field"><label style="font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px">Visa Type</label><span style="font-size:13px;font-weight:600">${selectedVisa?selectedVisa.name:'—'} (${selectedVisa?selectedVisa.code:''})</span></div>
+      <div class="info-field"><label style="font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px">Fee</label><span style="font-size:13px;font-weight:700;color:var(--teal)">${selectedVisa?selectedVisa.fee:'—'}</span></div>
+      <div class="info-field"><label style="font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px">Full Name</label><span style="font-size:13px;font-weight:500">${v('fname')} ${v('lname')}</span></div>
+      <div class="info-field"><label style="font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px">Passport No.</label><span style="font-size:13px;font-family:var(--mono)">${v('pass')}</span></div>
+      <div class="info-field"><label style="font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px">Travel Date</label><span style="font-size:13px">${v('travel')}</span></div>
+      <div class="info-field"><label style="font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px">Return Date</label><span style="font-size:13px">${v('return')}</span></div>
+    </div>`;
+}
+
+function submitApp(){
+  if(!document.getElementById('f-declare').checked){document.getElementById('declare-err').classList.add('show');return}
+  document.getElementById('form-step5').style.display='none';
+  document.getElementById('form-success').style.display='block';
+  const ref='VA-'+new Date().getFullYear()+'-'+Math.random().toString(36).substr(2,6).toUpperCase();
+  document.getElementById('new-ref').textContent=ref;
+  document.getElementById('form-steps').style.display='none';
+  currentStep=1;selectedVisa=null;docUploaded={};
+}
+
+// Track
+function doTrack(){
+  const ref=document.getElementById('track-ref').value.trim();
+  if(!ref){alert('Please enter a reference number');return}
+  const a=appData.find(x=>x.ref===ref)||appData[0];
+  document.getElementById('tr-visa').textContent=a.visa;
+  document.getElementById('tr-ref').textContent=a.ref;
+  document.getElementById('tr-badge').innerHTML=badge(a.status);
+  const steps=['Draft','Submitted','Under Review','Decision'];
+  const activeIdx={draft:0,submitted:1,under_review:2,approved:3,rejected:3}[a.status]??1;
+  document.getElementById('tr-stepper').innerHTML=steps.map((s,i)=>`${i>0?`<div class="ts-line ${i<=activeIdx?'done':''}"></div>`:''}
+    <div class="ts-item"><div class="ts-dot ${i<activeIdx?'done':i===activeIdx?'active':''}">${i<activeIdx?'✓':i+1}</div><div class="ts-lbl">${s}</div></div>`).join('');
+  document.getElementById('tr-timeline').innerHTML=a.history.map((h,i)=>`<div class="tl-item">
+    <div class="tl-left"><div class="tl-dot" style="background:${h.color}"></div>${i<a.history.length-1?'<div class="tl-line"></div>':''}</div>
+    <div><div class="tl-text">${h.status}</div>${h.note?`<div class="tl-note">${h.note}</div>`:''}<div class="tl-time">${h.time}</div></div></div>`).join('');
+  document.getElementById('track-result').style.display='block';
+}
+
+// Init
+showSection('dashboard',document.querySelector('.sb-item'));
+</script>
+</body>
+</html>
