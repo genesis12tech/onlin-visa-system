@@ -71,12 +71,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/applications/start', [ApplicationController::class, 'start'])->name('applications.start');
         Route::post('/applications', [ApplicationController::class, 'store'])->name('applications.store');
         Route::get('/applications/{tracking}', ApplicationWizard::class)->name('applications.wizard');
+        Route::post('/applications/{tracking}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');
 
         // Panel pages
         Route::get('/payments', PaymentsPage::class)->name('payments');
         Route::get('/notifications', NotificationsPage::class)->name('notifications');
         Route::get('/profile', ProfilePage::class)->name('profile');
-        Route::post('/applications/{tracking}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');
 
         // Payment flow
         Route::get('/applications/{tracking}/pay', FeeSummary::class)->name('applications.pay');
