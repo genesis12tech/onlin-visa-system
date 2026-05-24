@@ -44,7 +44,7 @@
             @endif
         </div>
 
-        <ul class="max-h-80 divide-y overflow-y-auto" style="divide-color:var(--portal-sand-3)">
+        <ul class="max-h-80 divide-y divide-[var(--portal-sand-3)] overflow-y-auto">
             @forelse($notifications as $notification)
                 @php
                     $type     = $notification->data['type'] ?? '';
@@ -56,6 +56,7 @@
                         'document_rejected'         => 'var(--portal-amber)',
                         'payment_succeeded'         => 'var(--portal-teal)',
                         'additional_info_requested' => 'var(--portal-amber)',
+                        'appointment_scheduled'     => '#1a5fa8',
                         default                     => '#1a5fa8',
                     };
                     $href = $tracking
@@ -64,8 +65,8 @@
                 @endphp
                 <li>
                     <a href="{{ $href }}"
-                       class="flex gap-3 px-4 py-3 transition-colors hover:bg-gray-50
-                              {{ is_null($notification->read_at) ? 'bg-blue-50' : '' }}">
+                       class="flex gap-3 px-4 py-3 transition-colors hover:bg-gray-50"
+                       style="{{ is_null($notification->read_at) ? 'background:var(--portal-teal-soft)' : '' }}">
                         <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full"
                               style="background:{{ $dotColor }};{{ $notification->read_at ? 'opacity:.4' : '' }}"></span>
                         <div class="min-w-0 flex-1">
