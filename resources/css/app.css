@@ -32,7 +32,7 @@
 
 /* ── Portal shell ── */
 .portal-body {
-    font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-sans);
     background: var(--portal-sand);
     color: var(--portal-ink);
     min-height: 100vh;
@@ -51,7 +51,6 @@
     left: 0;
     bottom: 0;
     z-index: 100;
-    overflow-y: auto;
 }
 
 .portal-main {
