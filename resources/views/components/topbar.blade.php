@@ -16,7 +16,7 @@
 
     $user      = auth()->user();
     $nameParts = $user ? explode(' ', trim($user->name)) : ['?'];
-    $initials  = mb_strtoupper(mb_substr($nameParts[0], 0, 1));
+    $initials  = mb_strtoupper(mb_substr($nameParts[0], 0, 1) ?: '?');
     if (count($nameParts) > 1) {
         $initials .= mb_strtoupper(mb_substr(end($nameParts), 0, 1));
     }
@@ -28,7 +28,7 @@
     </span>
 
     <div class="flex items-center gap-2.5">
-        {{-- Notification bell (Livewire — polls every 30 s) --}}
+        {{-- Notification bell (Livewire) --}}
         <livewire:dashboard.notification-bell />
 
         {{-- User avatar --}}

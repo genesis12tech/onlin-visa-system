@@ -3,7 +3,7 @@
 
     // Avatar initials: first letter of first + last word in name
     $nameParts = $user ? explode(' ', trim($user->name)) : ['?'];
-    $initials  = mb_strtoupper(mb_substr($nameParts[0], 0, 1));
+    $initials  = mb_strtoupper(mb_substr($nameParts[0], 0, 1) ?: '?');
     if (count($nameParts) > 1) {
         $initials .= mb_strtoupper(mb_substr(end($nameParts), 0, 1));
     }
