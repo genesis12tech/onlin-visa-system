@@ -9,7 +9,7 @@
     }
 
     // Unread notification count for the sidebar badge
-    $unreadNotifications = $user ? $user->unreadNotifications()->count() : 0;
+    $unreadNotifications = $user ? once(fn () => $user->unreadNotifications()->count()) : 0;
 @endphp
 
 <aside class="portal-sidebar">
