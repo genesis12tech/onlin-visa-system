@@ -8,9 +8,13 @@ use Illuminate\View\View;
 
 class ApplicationCard extends Component
 {
+    public string $borderColour;
+
     public function __construct(
         public VisaApplication $application,
-    ) {}
+    ) {
+        $this->borderColour = $application->status->borderClass();
+    }
 
     public function render(): View
     {

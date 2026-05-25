@@ -88,4 +88,15 @@ enum ApplicationStatus: string
             self::Withdrawn => 'Closed',
         };
     }
+
+    public function borderClass(): string
+    {
+        return match ($this) {
+            self::Approved => 'border-l-teal-600',
+            self::Rejected => 'border-l-red-500',
+            self::UnderReview, self::AdditionalInfoRequested, self::DocsRequired => 'border-l-amber-500',
+            self::Submitted, self::PaymentPending, self::PaymentCompleted => 'border-l-blue-500',
+            self::Draft, self::Withdrawn => 'border-l-gray-300',
+        };
+    }
 }

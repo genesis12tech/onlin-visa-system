@@ -1,5 +1,5 @@
 <a href="{{ route('applications.wizard', $application->tracking_number) }}"
-   {{ $attributes->merge(['class' => 'block bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3.5 hover:border-gray-300 dark:hover:border-gray-600 transition-colors']) }}>
+   {{ $attributes->merge(['class' => "block bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3.5 hover:border-gray-300 dark:hover:border-gray-600 transition-colors border-l-4 $borderColour"]) }}>
 
     {{-- Top row: title + badge --}}
     <div class="flex items-start justify-between gap-3 mb-2">
