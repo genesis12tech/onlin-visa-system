@@ -64,7 +64,8 @@ class TeamQueue extends Page implements HasTable
                     ->state(fn (VisaApplication $record): string => $record->applicantProfile?->full_name ?? '—')
                     ->searchable(query: fn (Builder $query, string $search): Builder => $query->whereHas(
                         'applicantProfile',
-                        fn (Builder $q) => $q->whereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"]),
+                        fn (Builder $q) => $q->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%"),
                     )),
 
                 TextColumn::make('visaType.name')

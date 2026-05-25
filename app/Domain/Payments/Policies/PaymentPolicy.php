@@ -2,6 +2,7 @@
 
 namespace App\Domain\Payments\Policies;
 
+use App\Domain\Payments\Enums\PaymentStatus;
 use App\Domain\Payments\Models\Invoice;
 use App\Domain\Payments\Models\Payment;
 use App\Models\User;
@@ -16,6 +17,12 @@ class PaymentPolicy
     public function view(User $user, Payment $payment): bool
     {
         return $user->hasAnyRole(['super_admin', 'admin', 'finance_officer']);
+    }
+
+    public function markAsPaid(User $user, Payment $payment): bool
+    {
+        return $payment->status !== PaymentStatus::Succeeded
+            && $user->hasAnyRole(['super_admin', 'admin']);
     }
 
     public function create(User $user): bool

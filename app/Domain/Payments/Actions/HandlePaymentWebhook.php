@@ -21,19 +21,26 @@ class HandlePaymentWebhook
             ]
         );
 
-        if ($webhookEvent->processed_at !== null) {
-            return;
-        }
-
         try {
             DB::transaction(function () use ($event, $webhookEvent): void {
+                // Re-fetch with a row-level lock so concurrent deliveries of the same
+                // event queue behind each other. The first to commit marks processed_at;
+                // subsequent ones bail out here rather than re-running the handler.
+                $locked = PaymentWebhookEvent::where('ulid', $webhookEvent->ulid)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($locked === null || $locked->processed_at !== null) {
+                    return;
+                }
+
                 match ($event->type) {
                     'checkout.session.completed' => $this->handleCheckoutCompleted($event->data->object),
                     'payment_intent.payment_failed' => $this->handlePaymentFailed($event->data->object),
                     default => null,
                 };
 
-                $webhookEvent->markProcessed();
+                $locked->markProcessed();
             });
         } catch (\Throwable $e) {
             $webhookEvent->fresh()?->markFailed($e->getMessage());
@@ -47,7 +54,7 @@ class HandlePaymentWebhook
             return;
         }
 
-        $payment = Payment::where('provider_checkout_session_id', $session->id)->first();
+        $payment = Payment::where('provider_checkout_session_id', $session->id)->lockForUpdate()->first();
 
         if (! $payment || $payment->status === PaymentStatus::Succeeded) {
             return;
@@ -64,7 +71,7 @@ class HandlePaymentWebhook
     {
         $failureMessage = $intent->last_payment_error->message ?? 'Payment failed';
 
-        $payment = Payment::where('provider_payment_intent_id', $intent->id)->first();
+        $payment = Payment::where('provider_payment_intent_id', $intent->id)->lockForUpdate()->first();
 
         if (! $payment) {
             return;

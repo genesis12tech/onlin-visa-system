@@ -10,7 +10,9 @@ use App\Domain\Payments\Models\Invoice;
 use App\Domain\Payments\Models\Payment;
 use App\Models\User;
 use App\Notifications\PaymentSucceededNotification;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ConfirmPayment
 {
@@ -44,11 +46,7 @@ class ConfirmPayment
                 'created_at' => now(),
             ]);
 
-            $invoice = Invoice::create([
-                'payment_id' => $payment->ulid,
-                'invoice_number' => $this->generateInvoiceNumber(),
-                'issued_at' => now(),
-            ]);
+            $invoice = $this->createInvoice($payment);
 
             $invoiceUlid = $invoice->ulid;
 
@@ -64,20 +62,32 @@ class ConfirmPayment
         }
     }
 
-    private function generateInvoiceNumber(): string
+    private function createInvoice(Payment $payment): Invoice
     {
         $year = now()->format('Y');
-        $maxAttempts = 10;
 
-        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+        // Try sequential numbers first. On a unique constraint violation (concurrent
+        // confirmation), catch and try the next slot — the DB is the arbiter, not a
+        // pre-check. After 10 misses fall back to a ULID suffix that cannot collide.
+        for ($attempt = 1; $attempt <= 10; $attempt++) {
             $count = Invoice::whereYear('issued_at', $year)->count() + $attempt;
-            $candidate = 'INV-'.$year.'-'.str_pad((string) $count, 6, '0', STR_PAD_LEFT);
+            $invoiceNumber = 'INV-'.$year.'-'.str_pad((string) $count, 6, '0', STR_PAD_LEFT);
 
-            if (! Invoice::where('invoice_number', $candidate)->exists()) {
-                return $candidate;
+            try {
+                return Invoice::create([
+                    'payment_id' => $payment->ulid,
+                    'invoice_number' => $invoiceNumber,
+                    'issued_at' => now(),
+                ]);
+            } catch (UniqueConstraintViolationException) {
+                continue;
             }
         }
 
-        return 'INV-'.$year.'-'.now()->format('Hisu');
+        return Invoice::create([
+            'payment_id' => $payment->ulid,
+            'invoice_number' => 'INV-'.$year.'-'.Str::upper(Str::ulid()),
+            'issued_at' => now(),
+        ]);
     }
 }

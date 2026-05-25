@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Payments\Pages;
 
 use App\Domain\Payments\Actions\ConfirmPayment;
-use App\Domain\Payments\Enums\PaymentStatus;
 use App\Domain\Payments\Models\Payment;
 use App\Filament\Resources\Payments\PaymentResource;
 use Filament\Actions\Action;
@@ -21,10 +20,10 @@ class ViewPayment extends ViewRecord
                 ->label('Mark as Paid')
                 ->icon(Heroicon::OutlinedCheckCircle)
                 ->color('success')
+                ->authorize(fn (Payment $record): bool => auth()->user()->can('markAsPaid', $record))
                 ->requiresConfirmation()
                 ->modalHeading('Confirm Manual Payment')
                 ->modalDescription('This will mark the payment as succeeded and transition the application to Payment Completed. Use this only when payment was confirmed outside Stripe (e.g. bank transfer).')
-                ->visible(fn (Payment $record): bool => $record->status !== PaymentStatus::Succeeded)
                 ->action(function (Payment $record): void {
                     (new ConfirmPayment)->execute($record, auth()->user());
                     $this->refreshFormData(['status', 'succeeded_at']);
