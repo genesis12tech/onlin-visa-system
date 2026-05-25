@@ -53,6 +53,17 @@
                                 <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $statusClass }}">
                                     {{ $document['status']->label() }}
                                 </span>
+                                @if($document['download_url'])
+                                    <a href="{{ $document['download_url'] }}"
+                                       class="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex-shrink-0">
+                                        View
+                                    </a>
+                                @elseif($document['status'] === \App\Domain\Documents\Enums\DocumentStatus::Pending)
+                                    <a href="{{ route('applications.wizard', $document['application_tracking']) }}"
+                                       class="text-xs font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400 flex-shrink-0">
+                                        Upload
+                                    </a>
+                                @endif
                             </div>
                         @endforeach
                     </div>

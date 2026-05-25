@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Documents;
 
+use App\Domain\Documents\Enums\ScanStatus;
 use App\Domain\Documents\Models\ApplicationDocument;
+use Illuminate\Support\Facades\URL;
 use Illuminate\View\View;
 use Livewire\Component;
 
@@ -27,6 +29,7 @@ class DocumentsPage extends Component
                 'visaApplication.visaType',
                 'visaApplication.visaType.country',
                 'documentType',
+                'currentVersion',
             ])
             ->orderBy('created_at')
             ->get();
@@ -44,6 +47,14 @@ class DocumentsPage extends Component
                     'type_name' => $doc->documentType->name,
                     'status' => $doc->status,
                     'updated_at' => $doc->updated_at->format('d M Y'),
+                    'download_url' => ($doc->currentVersion && $doc->currentVersion->scan_status === ScanStatus::Clean)
+                        ? URL::temporarySignedRoute(
+                            'documents.download',
+                            now()->addMinutes(15),
+                            ['version' => $doc->currentVersion->ulid],
+                        )
+                        : null,
+                    'application_tracking' => $doc->visaApplication->tracking_number,
                 ])->all(),
             ])
             ->values()
