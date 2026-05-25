@@ -380,9 +380,14 @@ class NewApplicationWizardTest extends TestCase
     {
         $component = Livewire::actingAs($this->user)->test(ApplicationWizard::class);
 
+        if ($targetStep <= 1) {
+            return $component;
+        }
+
         // → step 2
         $component->set('selectedVisaTypeUlid', $this->visaType->ulid)->call('nextStep');
-        if ($targetStep <= 1) {
+
+        if ($targetStep <= 2) {
             return $component;
         }
 
@@ -398,7 +403,8 @@ class NewApplicationWizardTest extends TestCase
             ->set('phone', '+1 555 000 1234')
             ->set('email', 'test@example.com')
             ->call('nextStep');
-        if ($targetStep <= 2) {
+
+        if ($targetStep <= 3) {
             return $component;
         }
 
@@ -411,7 +417,8 @@ class NewApplicationWizardTest extends TestCase
             ->set('purpose', 'Tourism and cultural exploration of the region.')
             ->set('previouslyRefused', 'no')
             ->call('nextStep');
-        if ($targetStep <= 3) {
+
+        if ($targetStep <= 4) {
             return $component;
         }
 
