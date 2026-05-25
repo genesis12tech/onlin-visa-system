@@ -12,6 +12,8 @@ class StatCard extends Component
         public string $label,
         public bool $highlight = false,
         public string $highlightColour = 'text-gray-900 dark:text-white',
+        public ?string $numberColour = null,
+        public ?string $sub = null,
     ) {}
 
     public function render(): View
