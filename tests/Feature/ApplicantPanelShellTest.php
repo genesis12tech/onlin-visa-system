@@ -80,6 +80,21 @@ class ApplicantPanelShellTest extends TestCase
         $this->get('/dashboard')->assertRedirect(route('login'));
     }
 
+    public function test_unauthenticated_user_on_payments_is_redirected_to_login(): void
+    {
+        $this->get('/payments')->assertRedirect(route('login'));
+    }
+
+    public function test_unauthenticated_user_on_notifications_is_redirected_to_login(): void
+    {
+        $this->get('/notifications')->assertRedirect(route('login'));
+    }
+
+    public function test_unauthenticated_user_on_profile_is_redirected_to_login(): void
+    {
+        $this->get('/profile')->assertRedirect(route('login'));
+    }
+
     // -----------------------------------------------------------------------
     // Sidebar content
     // -----------------------------------------------------------------------
