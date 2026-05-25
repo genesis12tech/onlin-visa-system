@@ -3,6 +3,7 @@
 @php
 $classes = match($variant) {
     'primary'   => 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
+    'teal'      => 'bg-teal-600 hover:bg-teal-700 text-white focus:ring-teal-500',
     'secondary' => 'bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 focus:ring-blue-500',
     'danger'    => 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
     default     => 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',

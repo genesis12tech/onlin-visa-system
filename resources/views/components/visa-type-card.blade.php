@@ -24,12 +24,6 @@ $border = $selected
                 <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-300">
                     {{ $type->validity_days }} days validity
                 </span>
-                @if($type->formattedFee() !== '—')
-                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
-                        {{ $selected ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300' }}">
-                        {{ $type->formattedFee() }}
-                    </span>
-                @endif
             </div>
         </div>
         @if($selected)
