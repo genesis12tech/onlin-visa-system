@@ -105,8 +105,12 @@ class ReceiptDownloadControllerTest extends TestCase
 
     public function test_redirects_when_pdf_not_yet_ready(): void
     {
+        $payment = Payment::factory()->succeeded()->create([
+            'visa_application_id' => $this->application->ulid,
+        ]);
+
         $invoice = Invoice::factory()->create([
-            'payment_id' => $this->payment->ulid,
+            'payment_id' => $payment->ulid,
             'pdf_storage_path' => null,
         ]);
 
