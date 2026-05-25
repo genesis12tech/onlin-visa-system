@@ -238,6 +238,20 @@ class ApplicantDashboardTest extends TestCase
         $this->assertNotContains('Complete payment', $labels);
     }
 
+    public function test_accepted_doc_count_is_alias_for_accepted_documents_count(): void
+    {
+        $app = $this->makeApplication(ApplicationStatus::Submitted);
+
+        $this->assertEquals($app->acceptedDocumentsCount(), $app->acceptedDocCount());
+    }
+
+    public function test_formatted_fee_returns_dash_when_no_active_fee(): void
+    {
+        $app = $this->makeApplication(ApplicationStatus::Submitted);
+
+        $this->assertEquals('—', $app->formattedFee());
+    }
+
     /** @param array<string, mixed> $overrides */
     private function makeApplication(ApplicationStatus $status, array $overrides = []): VisaApplication
     {

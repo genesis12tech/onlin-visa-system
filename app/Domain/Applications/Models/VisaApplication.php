@@ -187,6 +187,27 @@ class VisaApplication extends Model
             ->count();
     }
 
+    public function acceptedDocCount(): int
+    {
+        return $this->acceptedDocumentsCount();
+    }
+
+    public function formattedFee(): string
+    {
+        $fee = $this->visaType?->fees()
+            ->where('is_active', true)
+            ->where('applicant_type', 'all')
+            ->whereDate('effective_from', '<=', now())
+            ->where(fn ($q) => $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', now()))
+            ->first();
+
+        if (! $fee) {
+            return '—';
+        }
+
+        return number_format($fee->amount / 100, 2) . ' ' . $fee->currency;
+    }
+
     public function requiredDocumentsCount(): int
     {
         return $this->visaType
