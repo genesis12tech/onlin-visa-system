@@ -312,6 +312,22 @@ class ApplicantDashboardTest extends TestCase
             ->assertSet('upcomingTrip', fn ($v) => $v !== null && $v->ulid === $sooner->ulid);
     }
 
+    public function test_welcome_banner_shows_user_first_name(): void
+    {
+        $this->user->update(['name' => 'Maria Santos']);
+
+        $this->actingAs($this->user)
+            ->get(route('dashboard'))
+            ->assertSee('Maria');
+    }
+
+    public function test_new_application_cta_link_is_present(): void
+    {
+        $this->actingAs($this->user)
+            ->get(route('dashboard'))
+            ->assertSee(route('applications.start'));
+    }
+
     /** @param array<string, mixed> $overrides */
     private function makeApplication(ApplicationStatus $status, array $overrides = []): VisaApplication
     {
