@@ -17,6 +17,7 @@
         @if($unreadCount > 0)
             <span class="absolute right-1.5 top-1.5 h-[7px] w-[7px] rounded-full border-2 border-white"
                   style="background:var(--portal-amber)"
+                  data-testid="unread-dot"
                   aria-hidden="true"></span>
         @endif
     </button>

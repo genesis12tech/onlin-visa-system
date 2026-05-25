@@ -118,7 +118,7 @@ class ApplicantPanelShellTest extends TestCase
         Livewire::actingAs($this->user)
             ->test(NotificationBell::class)
             ->assertSet('unreadCount', 1)
-            ->assertSeeHtml('background:var(--portal-amber)');
+            ->assertSeeHtml('data-testid="unread-dot"');
     }
 
     // -----------------------------------------------------------------------
@@ -130,7 +130,7 @@ class ApplicantPanelShellTest extends TestCase
         Livewire::actingAs($this->user)
             ->test(NotificationBell::class)
             ->assertSet('unreadCount', 0)
-            ->assertDontSeeHtml('background:var(--portal-amber)');
+            ->assertDontSeeHtml('data-testid="unread-dot"');
     }
 
     // -----------------------------------------------------------------------
@@ -153,5 +153,10 @@ class ApplicantPanelShellTest extends TestCase
             ->assertSet('unreadCount', 1)
             ->call('markAllAsRead')
             ->assertSet('unreadCount', 0);
+
+        $this->assertDatabaseMissing('notifications', [
+            'notifiable_id' => $this->user->id,
+            'read_at' => null,
+        ]);
     }
 }
