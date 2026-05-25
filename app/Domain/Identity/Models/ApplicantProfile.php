@@ -38,6 +38,7 @@ class ApplicantProfile extends Model
         'city',
         'state',
         'postal_code',
+        'notification_preferences',
     ];
 
     protected function casts(): array
@@ -47,6 +48,7 @@ class ApplicantProfile extends Model
             'passport_expiry_date' => 'date',
             'passport_number' => 'encrypted',
             'phone' => 'encrypted',
+            'notification_preferences' => 'array',
         ];
     }
 
