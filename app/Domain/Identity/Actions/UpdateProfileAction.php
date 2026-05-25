@@ -11,6 +11,8 @@ class UpdateProfileAction
     {
         $profile = $user->applicantProfile;
 
+        abort_if($profile === null, 422, 'Profile not found.');
+
         $profile->update([
             'first_name' => $data['firstName'],
             'last_name' => $data['lastName'],
