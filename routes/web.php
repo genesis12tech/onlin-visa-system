@@ -15,6 +15,7 @@ use App\Http\Controllers\ReceiptDownloadController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureProfileComplete;
 use App\Livewire\ApplicantDashboard;
+use App\Livewire\ApplicationList;
 use App\Livewire\Applications\ApplicationWizard;
 use App\Livewire\Documents\DocumentsPage;
 use App\Livewire\Notifications\NotificationsPage;
@@ -67,7 +68,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/documents', DocumentsPage::class)->name('documents');
 
         // Applications
-        Route::get('/applications', ApplicantDashboard::class)->name('applications.index');
+        Route::get('/applications', ApplicationList::class)->name('applications.index');
         Route::get('/applications/start', [ApplicationController::class, 'start'])->name('applications.start');
         Route::post('/applications', [ApplicationController::class, 'store'])->name('applications.store');
         Route::get('/applications/{tracking}', ApplicationWizard::class)->name('applications.wizard');
