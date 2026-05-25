@@ -1,4 +1,18 @@
-<div class="max-w-3xl space-y-6">
+<div class="max-w-3xl space-y-6"
+     x-data="{ savedMsg: '' }"
+     x-on:saved-msg.window="savedMsg = $event.detail.msg; setTimeout(() => savedMsg = '', 2500)">
+
+    {{-- Saved indicator --}}
+    @if($saved)
+        <div
+            x-data="{ show: true }"
+            x-init="setTimeout(() => show = false, 2500)"
+            x-show="show"
+            class="flex items-center gap-1.5 text-sm text-green-600 dark:text-green-400 px-1"
+        >
+            <i class="ti ti-circle-check"></i> {{ $saved }}
+        </div>
+    @endif
 
     {{-- Profile card --}}
     <x-card>
@@ -116,7 +130,7 @@
                 <label class="flex items-start gap-3 cursor-pointer">
                     <div class="relative flex-shrink-0 mt-0.5">
                         <input type="checkbox"
-                               wire:model.live="{{ $property }}"
+                               wire:model="{{ $property }}"
                                wire:change="saveNotificationPreferences"
                                class="sr-only peer">
                         <div class="w-9 h-5 rounded-full transition-colors peer-checked:bg-teal-600 bg-gray-200 dark:bg-gray-700"></div>

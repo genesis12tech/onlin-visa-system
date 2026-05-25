@@ -53,6 +53,8 @@ class ProfilePage extends Component
 
     public bool $notifyEmailDocumentReminders = true;
 
+    public string $saved = '';
+
     public function mount(): void
     {
         $profile = auth()->user()->applicantProfile;
@@ -123,7 +125,7 @@ class ProfilePage extends Component
             'postalCode' => $this->postalCode ?: null,
         ]);
 
-        $this->dispatch('profile-saved');
+        $this->saved = 'Profile saved.';
     }
 
     public function changePassword(): void
@@ -136,7 +138,7 @@ class ProfilePage extends Component
         try {
             UpdatePasswordAction::run(auth()->user(), $this->currentPassword, $this->newPassword);
             $this->reset('currentPassword', 'newPassword', 'newPasswordConfirmation');
-            $this->dispatch('password-changed');
+            $this->saved = 'Password changed.';
         } catch (ValidationException $e) {
             $this->setErrorBag($e->errors());
         }
@@ -152,12 +154,12 @@ class ProfilePage extends Component
             ],
         ]);
 
-        $this->dispatch('prefs-saved');
+        $this->saved = 'Preferences saved.';
     }
 
     public function render(): View
     {
-        $countries = Country::orderBy('name')->get(['id', 'name']);
+        $countries = Country::where('is_active', true)->orderBy('name')->get(['id', 'name']);
 
         return view('livewire.profile.profile-page', [
             'countries' => $countries,
