@@ -12,6 +12,9 @@ class ApplicantDashboard extends Component
 {
     public Collection $applications;
 
+    /** @var array{total:int,approved:int,underReview:int,pendingPayment:int} */
+    public array $stats = [];
+
     public int $totalCount = 0;
 
     public int $inProgressCount = 0;
@@ -21,6 +24,8 @@ class ApplicantDashboard extends Component
     public int $approvedCount = 0;
 
     public ?VisaApplication $actionRequiredApp = null;
+
+    public ?VisaApplication $upcomingTrip = null;
 
     /** @var array<int, array{icon: string, label: string, href: string}> */
     public array $quickActions = [];
@@ -34,7 +39,7 @@ class ApplicantDashboard extends Component
             return;
         }
 
-        $apps = VisaApplication::where('applicant_profile_id', $profile->ulid)
+        $allApps = VisaApplication::where('applicant_profile_id', $profile->ulid)
             ->with([
                 'visaType',
                 'visaType.country',
@@ -43,19 +48,28 @@ class ApplicantDashboard extends Component
             ->orderByDesc('updated_at')
             ->get();
 
-        $this->applications = $apps;
-        $this->totalCount = $apps->count();
-        $this->inProgressCount = $apps
+        $this->applications = $allApps->take(3);
+
+        $this->totalCount = $allApps->count();
+        $this->approvedCount = $allApps->filter(fn ($a) => $a->status === ApplicationStatus::Approved)->count();
+        $this->inProgressCount = $allApps
             ->filter(fn ($a) => in_array($a->status->value, ApplicationStatus::inProgressValues(), true))
             ->count();
-        $this->actionNeededCount = $apps
-            ->filter(fn ($a) => $this->isActionRequired($a))
-            ->count();
-        $this->approvedCount = $apps
-            ->filter(fn ($a) => $a->status === ApplicationStatus::Approved)
-            ->count();
-        $this->actionRequiredApp = $apps->first(fn ($a) => $this->isActionRequired($a));
-        $this->quickActions = $this->buildQuickActions($apps);
+        $this->actionNeededCount = $allApps->filter(fn ($a) => $this->isActionRequired($a))->count();
+        $this->actionRequiredApp = $allApps->first(fn ($a) => $this->isActionRequired($a));
+        $this->quickActions = $this->buildQuickActions($allApps);
+
+        $this->stats = [
+            'total' => $this->totalCount,
+            'approved' => $this->approvedCount,
+            'underReview' => $allApps->filter(fn ($a) => $a->status === ApplicationStatus::UnderReview)->count(),
+            'pendingPayment' => $allApps->filter(fn ($a) => $a->status === ApplicationStatus::PaymentPending)->count(),
+        ];
+
+        $this->upcomingTrip = $allApps
+            ->filter(fn ($a) => $a->status === ApplicationStatus::Approved && $a->travel_date?->isFuture())
+            ->sortBy('travel_date')
+            ->first();
     }
 
     private function isActionRequired(VisaApplication $app): bool

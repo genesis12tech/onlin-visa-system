@@ -252,6 +252,66 @@ class ApplicantDashboardTest extends TestCase
         $this->assertEquals('—', $app->formattedFee());
     }
 
+    public function test_dashboard_shows_at_most_three_recent_applications(): void
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $this->makeApplication(ApplicationStatus::Submitted);
+        }
+
+        $component = Livewire::actingAs($this->user)->test(ApplicantDashboard::class);
+
+        $this->assertCount(3, $component->get('applications'));
+    }
+
+    public function test_stats_array_has_correct_counts(): void
+    {
+        $this->makeApplication(ApplicationStatus::Approved);
+        $this->makeApplication(ApplicationStatus::UnderReview);
+        $this->makeApplication(ApplicationStatus::PaymentPending);
+
+        $component = Livewire::actingAs($this->user)->test(ApplicantDashboard::class);
+        $stats = $component->get('stats');
+
+        $this->assertEquals(3, $stats['total']);
+        $this->assertEquals(1, $stats['approved']);
+        $this->assertEquals(1, $stats['underReview']);
+        $this->assertEquals(1, $stats['pendingPayment']);
+    }
+
+    public function test_upcoming_trip_is_null_when_no_approved_apps_with_future_travel(): void
+    {
+        $this->makeApplication(ApplicationStatus::Approved); // travel_date = null
+
+        Livewire::actingAs($this->user)
+            ->test(ApplicantDashboard::class)
+            ->assertSet('upcomingTrip', null);
+    }
+
+    public function test_upcoming_trip_is_set_when_approved_app_has_future_travel_date(): void
+    {
+        $app = $this->makeApplication(ApplicationStatus::Approved, [
+            'travel_date' => now()->addDays(14)->toDateString(),
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(ApplicantDashboard::class)
+            ->assertSet('upcomingTrip', fn ($v) => $v !== null && $v->ulid === $app->ulid);
+    }
+
+    public function test_upcoming_trip_is_earliest_future_approved_travel(): void
+    {
+        $later = $this->makeApplication(ApplicationStatus::Approved, [
+            'travel_date' => now()->addDays(30)->toDateString(),
+        ]);
+        $sooner = $this->makeApplication(ApplicationStatus::Approved, [
+            'travel_date' => now()->addDays(10)->toDateString(),
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(ApplicantDashboard::class)
+            ->assertSet('upcomingTrip', fn ($v) => $v !== null && $v->ulid === $sooner->ulid);
+    }
+
     /** @param array<string, mixed> $overrides */
     private function makeApplication(ApplicationStatus $status, array $overrides = []): VisaApplication
     {
