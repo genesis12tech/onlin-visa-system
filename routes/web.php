@@ -17,6 +17,7 @@ use App\Http\Middleware\EnsureProfileComplete;
 use App\Livewire\ApplicantDashboard;
 use App\Livewire\ApplicationList;
 use App\Livewire\Applications\ApplicationWizard;
+use App\Livewire\ApplicationWizard as NewApplicationWizard;
 use App\Livewire\Documents\DocumentsPage;
 use App\Livewire\Notifications\NotificationsPage;
 use App\Livewire\Payments\FeeSummary;
@@ -69,7 +70,7 @@ Route::middleware('auth')->group(function () {
 
         // Applications
         Route::get('/applications', ApplicationList::class)->name('applications.index');
-        Route::get('/applications/start', [ApplicationController::class, 'start'])->name('applications.start');
+        Route::get('/applications/start', NewApplicationWizard::class)->name('applications.start');
         Route::post('/applications', [ApplicationController::class, 'store'])->name('applications.store');
         Route::get('/applications/{tracking}', ApplicationWizard::class)->name('applications.wizard');
         Route::post('/applications/{tracking}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');
