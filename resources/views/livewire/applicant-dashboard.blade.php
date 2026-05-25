@@ -103,7 +103,7 @@
                             {{ $upcomingTrip->visaType->name }} · {{ $upcomingTrip->visaType->country->name }}
                         </p>
                         <p class="text-xs" style="color: var(--portal-ink-4)">
-                            {{ (int) now()->diffInDays($upcomingTrip->travel_date, false) }} days remaining
+                            {{ (int) now()->diffInDays($upcomingTrip->travel_date, true) }} days remaining
                         </p>
                     </div>
                 @else
