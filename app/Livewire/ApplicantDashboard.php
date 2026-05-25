@@ -13,7 +13,7 @@ class ApplicantDashboard extends Component
     public Collection $applications;
 
     /** @var array{total:int,approved:int,underReview:int,pendingPayment:int} */
-    public array $stats = [];
+    public array $stats = ['total' => 0, 'approved' => 0, 'underReview' => 0, 'pendingPayment' => 0];
 
     public int $totalCount = 0;
 
