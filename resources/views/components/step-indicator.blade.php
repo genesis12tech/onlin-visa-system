@@ -1,20 +1,24 @@
+{{-- Accepted color values: 'blue' (default), 'teal'. Unknown values fall back to blue. --}}
 @props(['steps', 'current', 'color' => 'blue'])
 
 @php
-$done = [
-    'blue' => 'bg-blue-600 text-white',
-    'teal' => 'bg-teal-600 text-white',
-][$color] ?? 'bg-blue-600 text-white';
+$colors = [
+    'blue' => [
+        'done'        => 'bg-blue-600 text-white',
+        'active'      => 'border-2 border-blue-600 text-blue-600 dark:text-blue-400',
+        'activeLabel' => 'text-blue-600 dark:text-blue-400',
+    ],
+    'teal' => [
+        'done'        => 'bg-teal-600 text-white',
+        'active'      => 'border-2 border-teal-600 text-teal-600 dark:text-teal-400',
+        'activeLabel' => 'text-teal-600 dark:text-teal-400',
+    ],
+];
 
-$active = [
-    'blue' => 'border-2 border-blue-600 text-blue-600 dark:text-blue-400',
-    'teal' => 'border-2 border-teal-600 text-teal-600 dark:text-teal-400',
-][$color] ?? 'border-2 border-blue-600 text-blue-600 dark:text-blue-400';
-
-$activeLabel = [
-    'blue' => 'text-blue-600 dark:text-blue-400',
-    'teal' => 'text-teal-600 dark:text-teal-400',
-][$color] ?? 'text-blue-600 dark:text-blue-400';
+$palette      = $colors[$color] ?? $colors['blue'];
+$done         = $palette['done'];
+$active       = $palette['active'];
+$activeLabel  = $palette['activeLabel'];
 
 $pending      = 'border-2 border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400';
 $pendingLabel = 'text-stone-500 dark:text-stone-400';
