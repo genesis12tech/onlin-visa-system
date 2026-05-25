@@ -58,6 +58,7 @@
         @php
             $stages = ['Received', 'Under Review', 'Decision', 'Complete'];
             $activeStep = $result['active_step'];
+            $statusEnum = \App\Domain\Applications\Enums\ApplicationStatus::from($result['status_value']);
             $histories = collect($result['histories'])->map(fn ($h) => (object)[
                 'public_label' => $h['public_label'],
                 'created_at' => \Carbon\Carbon::parse($h['created_at']),
@@ -80,7 +81,7 @@
                         {{ $result['tracking_number'] }}
                     </p>
                 </div>
-                <x-badge :status="$result['status']" />
+                <x-badge :status="$statusEnum" />
             </div>
 
             <div class="border-t border-gray-100 dark:border-gray-700 pt-4">

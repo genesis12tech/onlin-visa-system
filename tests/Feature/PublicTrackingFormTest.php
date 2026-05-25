@@ -131,8 +131,6 @@ class PublicTrackingFormTest extends TestCase
 
     public function test_track_route_rate_limited_after_ten_requests(): void
     {
-        RateLimiter::clear('track');
-
         for ($i = 0; $i < 10; $i++) {
             $this->get(route('track'))->assertOk();
         }

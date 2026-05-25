@@ -62,7 +62,7 @@ class PublicTrackingForm extends Component
         $this->result = [
             'tracking_number' => $application->tracking_number,
             'visa_type_name' => $application->visaType->name,
-            'status' => $application->status,
+            'status_value' => $application->status->value,
             'active_step' => $this->resolveActiveStep($application->status),
             'histories' => $application->statusHistories
                 ->map(fn ($h) => [
@@ -77,6 +77,7 @@ class PublicTrackingForm extends Component
     private function resolveActiveStep(ApplicationStatus $status): int
     {
         return match ($status) {
+            ApplicationStatus::Draft,
             ApplicationStatus::Submitted,
             ApplicationStatus::PaymentPending,
             ApplicationStatus::PaymentCompleted => 1,
@@ -84,8 +85,8 @@ class PublicTrackingForm extends Component
             ApplicationStatus::AdditionalInfoRequested,
             ApplicationStatus::DocsRequired => 2,
             ApplicationStatus::Approved,
-            ApplicationStatus::Rejected => 3,
-            default => 1,
+            ApplicationStatus::Rejected,
+            ApplicationStatus::Withdrawn => 3,
         };
     }
 
