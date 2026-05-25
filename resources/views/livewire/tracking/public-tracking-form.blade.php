@@ -4,7 +4,7 @@
     <div class="text-center">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Track your application</h1>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Enter your tracking number to see the current status.
+            Enter your tracking number and email address to see the current status.
         </p>
     </div>
 
@@ -25,6 +25,20 @@
                 >
             </div>
 
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Email address
+                </label>
+                <input
+                    id="email"
+                    type="email"
+                    wire:model="email"
+                    placeholder="The email used when applying"
+                    class="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    required
+                >
+            </div>
+
             <x-button type="submit" class="w-full" wire:loading.attr="disabled">
                 <span wire:loading.remove>Search</span>
                 <span wire:loading>Searching…</span>
@@ -35,18 +49,27 @@
     {{-- Not found / error message --}}
     @if($notFound)
         <x-alert type="error" :dismissible="false">
-            We could not find an application with that tracking number. Please check your reference email and try again.
+            We could not find an application matching that tracking number and email. Please check your details and try again.
         </x-alert>
     @endif
 
-    {{-- Result card --}}
+    {{-- Result --}}
     @if($result)
         @php
+            $stages = ['Received', 'Under Review', 'Decision', 'Complete'];
+            $activeStep = $result['active_step'];
             $histories = collect($result['histories'])->map(fn ($h) => (object)[
                 'public_label' => $h['public_label'],
                 'created_at' => \Carbon\Carbon::parse($h['created_at']),
             ]);
         @endphp
+
+        {{-- 4-stage stepper --}}
+        <x-card>
+            <x-step-indicator :steps="$stages" :current="$activeStep" color="teal" />
+        </x-card>
+
+        {{-- Status card --}}
         <x-card>
             <div class="flex items-start justify-between mb-4">
                 <div>

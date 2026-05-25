@@ -108,7 +108,9 @@ Route::get('/invoices/{invoice}/receipt', [ReceiptDownloadController::class, 'do
     ->middleware(['auth', 'throttle:document-download']);
 
 // Public tracking — no auth
-Route::get('/track', PublicTrackingForm::class)->name('track');
+Route::get('/track', PublicTrackingForm::class)
+    ->name('track')
+    ->middleware('throttle:track');
 
 // Stripe webhook — no auth
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
