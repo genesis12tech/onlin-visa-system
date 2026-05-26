@@ -21,11 +21,11 @@
 
     <div class="field">
         <div class="label">Applicant</div>
-        <div class="value">{{ $applicantProfile->full_name }}</div>
+        <div class="value">{{ $applicantName }}</div>
     </div>
     <div class="field">
         <div class="label">Visa Type</div>
-        <div class="value">{{ $application->visaType->name }}</div>
+        <div class="value">{{ $visaTypeName }}</div>
     </div>
     <div class="field">
         <div class="label">Decision Date</div>

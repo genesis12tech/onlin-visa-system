@@ -53,11 +53,14 @@ class SubmitApplication
                 'created_at' => now(),
             ]);
 
+            $locked->load('applicantProfile');
+
             ApplicationSnapshot::firstOrCreate(
                 ['visa_application_id' => $locked->ulid],
                 [
                     'snapshot_data' => [
                         'tracking_number' => $locked->tracking_number,
+                        'applicant_name' => $locked->applicantProfile?->full_name,
                         'visa_type' => $locked->visaType?->toArray(),
                         'form_template_id' => $locked->form_template_id,
                         'answers' => $locked->answers()->get(['field_key', 'value'])->toArray(),

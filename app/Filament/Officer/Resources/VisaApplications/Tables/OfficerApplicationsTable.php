@@ -131,14 +131,14 @@ class OfficerApplicationsTable
                     ->visible(fn (): bool => auth()->user()?->hasAnyRole(['senior_officer', 'admin', 'super_admin']) ?? false)
                     ->authorize(fn (VisaApplication $record): bool => auth()->user()?->can('reassign', $record) ?? false)
                     ->schema([
-                        Select::make('officer_id')
+                        Select::make('officer_ulid')
                             ->label('Assign to officer')
-                            ->options(User::role(['case_officer', 'senior_officer'])->pluck('name', 'id'))
+                            ->options(User::role(['case_officer', 'senior_officer'])->pluck('name', 'ulid'))
                             ->required(),
                     ])
                     ->action(fn (VisaApplication $record, array $data) => (new AssignApplicationToOfficer)->execute(
                         $record,
-                        User::findOrFail($data['officer_id']),
+                        User::where('ulid', $data['officer_ulid'])->firstOrFail(),
                         auth()->user(),
                     )),
             ])
@@ -146,15 +146,16 @@ class OfficerApplicationsTable
                 BulkAction::make('bulk_assign')
                     ->label('Assign to officer')
                     ->icon('heroicon-o-user-plus')
+                    ->authorize(fn (): bool => auth()->user()?->hasAnyRole(['super_admin', 'admin', 'senior_officer']) ?? false)
                     ->visible(fn (): bool => auth()->user()?->hasAnyRole(['senior_officer', 'admin', 'super_admin']) ?? false)
                     ->schema([
-                        Select::make('officer_id')
+                        Select::make('officer_ulid')
                             ->label('Assign to officer')
-                            ->options(User::role(['case_officer', 'senior_officer'])->pluck('name', 'id'))
+                            ->options(User::role(['case_officer', 'senior_officer'])->pluck('name', 'ulid'))
                             ->required(),
                     ])
                     ->action(function (Collection $records, array $data): void {
-                        $officer = User::findOrFail($data['officer_id']);
+                        $officer = User::where('ulid', $data['officer_ulid'])->firstOrFail();
                         $records->each(fn (VisaApplication $record) => (new AssignApplicationToOfficer)->execute(
                             $record,
                             $officer,

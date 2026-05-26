@@ -2,6 +2,7 @@
 
 namespace App\Domain\Applications\Jobs;
 
+use App\Domain\Applications\Models\ApplicationSnapshot;
 use App\Domain\Applications\Models\VisaApplication;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,12 +24,27 @@ class GenerateDecisionLetterPdf implements ShouldQueue
 
     public function handle(): void
     {
-        $application = VisaApplication::with(['visaType', 'applicantProfile'])
-            ->findOrFail($this->visaApplicationUlid);
+        // Load only the decision-specific fields from the live record.
+        $application = VisaApplication::findOrFail($this->visaApplicationUlid);
 
-        $applicantProfile = $application->applicantProfile;
+        // Pull immutable identity data from the snapshot taken at submission time
+        // so that post-decision edits to the applicant profile or visa type cannot
+        // alter the contents of an already-issued decision letter.
+        $snapshot = ApplicationSnapshot::where('visa_application_id', $this->visaApplicationUlid)->first();
 
-        $pdf = Pdf::loadView('pdfs.decision-letter', compact('application', 'applicantProfile'));
+        $applicantName = $snapshot?->snapshot_data['applicant_name']
+            ?? $application->applicantProfile?->full_name
+            ?? '—';
+
+        $visaTypeName = $snapshot?->snapshot_data['visa_type']['name']
+            ?? $application->visaType?->name
+            ?? '—';
+
+        $pdf = Pdf::loadView('pdfs.decision-letter', [
+            'application' => $application,
+            'applicantName' => $applicantName,
+            'visaTypeName' => $visaTypeName,
+        ]);
 
         $storagePath = 'decisions/'.Str::ulid().'.pdf';
         $written = Storage::disk('documents')->put($storagePath, $pdf->output());

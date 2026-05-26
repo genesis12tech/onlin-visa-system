@@ -12,12 +12,24 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable;
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function (self $user): void {
+            if (empty($user->ulid)) {
+                $user->ulid = (string) Str::ulid();
+            }
+        });
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -30,6 +42,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'password',
         'two_factor_enabled',
         'status',
+        'ulid',
     ];
 
     /**
