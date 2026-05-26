@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Domain\Identity\Enums\UserStatus;
 use App\Domain\Identity\Models\ApplicantProfile;
+use App\Domain\Identity\Models\OfficerProfile;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -86,6 +87,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function applicantProfile(): HasOne
     {
         return $this->hasOne(ApplicantProfile::class);
+    }
+
+    public function officerProfile(): HasOne
+    {
+        return $this->hasOne(OfficerProfile::class);
     }
 
     public function initials(): string
