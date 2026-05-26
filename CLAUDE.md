@@ -14,6 +14,7 @@ Read the following to get the full document of the project:
 -@docs/architecture-decisions.md
 -@docs/project-workflow.md
 -@docs/database-model.md
+-@docs/database-spec.md
 -@docs/workflows-and-statuses.md
 -@docs/security-rules.md
 -@docs/filament-resource-map.md
@@ -46,6 +47,7 @@ Read the following to get the full features of the project:
 - ☑ M8 — Dashboard Phase 1 (Officer panel registration, dark-mode theme, custom Dashboard page, placeholder layout)
 - ☑ M9 — Dashboard Phase 2 (Collapsible sidebar, navigation groups, placeholder pages, mock data service)
 - ☑ M10 — Dashboard Phase 3 (Greeting header, stat cards, priority queue table, team workload, activity feed widgets)
+- ☑ M11 — Database Schema Implementation (full table definitions, migrations, seeders, encryption, constraints per database-spec.md)
 
 ## Commands
 
