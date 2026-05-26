@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Domain\Applications\Enums\ApplicationPriority;
 use App\Domain\Applications\Enums\ApplicationStatus;
 use App\Domain\Applications\Models\FormTemplate;
 use App\Domain\Applications\Models\VisaApplication;
@@ -24,12 +25,18 @@ class VisaApplicationFactory extends Factory
             'visa_type_id' => VisaType::factory(),
             'form_template_id' => FormTemplate::factory(),
             'status' => ApplicationStatus::Draft,
+            'priority' => ApplicationPriority::Normal,
             'assigned_officer_id' => null,
             'submitted_at' => null,
             'travel_date' => null,
             'decision_at' => null,
             'decision_reason' => null,
         ];
+    }
+
+    public function highPriority(): static
+    {
+        return $this->state(fn () => ['priority' => ApplicationPriority::High]);
     }
 
     public function submitted(): static

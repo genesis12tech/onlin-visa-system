@@ -2,6 +2,7 @@
 
 namespace App\Domain\Applications\Models;
 
+use App\Domain\Applications\Enums\ApplicationPriority;
 use App\Domain\Applications\Enums\ApplicationStatus;
 use App\Domain\Documents\Enums\DocumentStatus;
 use App\Domain\Documents\Models\ApplicationDocument;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -23,7 +25,7 @@ use Spatie\Activitylog\Support\LogOptions;
 class VisaApplication extends Model
 {
     /** @use HasFactory<VisaApplicationFactory> */
-    use HasFactory, HasUlids, LogsActivity;
+    use HasFactory, HasUlids, LogsActivity, SoftDeletes;
 
     protected static function newFactory(): VisaApplicationFactory
     {
@@ -43,7 +45,10 @@ class VisaApplication extends Model
         'travel_date',
         'decision_at',
         'decision_reason',
+        'decision_by',
         'validity_period',
+        'priority',
+        'days_pending',
         'entry_type',
         'decision_letter_pdf_path',
         'summary_pdf_path',
@@ -53,6 +58,8 @@ class VisaApplication extends Model
     {
         return [
             'status' => ApplicationStatus::class,
+            'priority' => ApplicationPriority::class,
+            'days_pending' => 'integer',
             'submitted_at' => 'datetime',
             'travel_date' => 'date',
             'decision_at' => 'datetime',
@@ -90,6 +97,11 @@ class VisaApplication extends Model
     public function officer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_officer_id');
+    }
+
+    public function decisionBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'decision_by');
     }
 
     public function statusHistories(): HasMany
@@ -205,7 +217,7 @@ class VisaApplication extends Model
             return '—';
         }
 
-        return number_format($fee->amount / 100, 2) . ' ' . $fee->currency;
+        return number_format($fee->amount / 100, 2).' '.$fee->currency;
     }
 
     public function requiredDocumentsCount(): int
