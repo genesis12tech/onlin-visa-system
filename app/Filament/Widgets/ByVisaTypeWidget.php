@@ -20,7 +20,8 @@ class ByVisaTypeWidget extends ChartWidget
 
     protected function getData(): array
     {
-        $rows = DailyApplicationMetrics::with('visaType')
+        $rows = DailyApplicationMetrics::perVisaType()
+            ->with('visaType')
             ->where('date', '>=', Carbon::now()->startOfMonth())
             ->get()
             ->groupBy('visa_type_id')

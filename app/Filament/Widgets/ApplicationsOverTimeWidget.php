@@ -20,7 +20,8 @@ class ApplicationsOverTimeWidget extends ChartWidget
     {
         $months = (int) ($this->filter ?? 6);
 
-        $rows = DailyApplicationMetrics::where('date', '>=', Carbon::now()->subMonths($months - 1)->startOfMonth())
+        $rows = DailyApplicationMetrics::perVisaType()
+            ->where('date', '>=', Carbon::now()->subMonths($months - 1)->startOfMonth())
             ->orderBy('date')
             ->get()
             ->groupBy(fn ($row) => $row->date->format('M Y'))

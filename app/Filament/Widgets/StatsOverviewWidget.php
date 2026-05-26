@@ -21,22 +21,22 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
             $lastMonth = Carbon::now()->subMonth()->startOfMonth();
             $lastMonthEnd = $thisMonth;
 
-            $submittedTotal = DailyApplicationMetrics::sum('submitted_count');
+            $submittedTotal = DailyApplicationMetrics::perVisaType()->sum('submitted_count');
 
-            $submittedThisMonth = DailyApplicationMetrics::where('date', '>=', $thisMonth)
+            $submittedThisMonth = DailyApplicationMetrics::perVisaType()->where('date', '>=', $thisMonth)
                 ->sum('submitted_count');
-            $submittedLastMonth = DailyApplicationMetrics::whereBetween('date', [$lastMonth, $lastMonthEnd])
+            $submittedLastMonth = DailyApplicationMetrics::perVisaType()->whereBetween('date', [$lastMonth, $lastMonthEnd])
                 ->sum('submitted_count');
 
-            $pendingToday = DailyApplicationMetrics::whereDate('date', today())
+            $pendingToday = DailyApplicationMetrics::perVisaType()->whereDate('date', today())
                 ->sum('pending_count');
 
-            $approvedThisMonth = DailyApplicationMetrics::where('date', '>=', $thisMonth)
+            $approvedThisMonth = DailyApplicationMetrics::perVisaType()->where('date', '>=', $thisMonth)
                 ->sum('approved_count');
-            $approvedLastMonth = DailyApplicationMetrics::whereBetween('date', [$lastMonth, $lastMonthEnd])
+            $approvedLastMonth = DailyApplicationMetrics::perVisaType()->whereBetween('date', [$lastMonth, $lastMonthEnd])
                 ->sum('approved_count');
 
-            $rejectedThisMonth = DailyApplicationMetrics::where('date', '>=', $thisMonth)
+            $rejectedThisMonth = DailyApplicationMetrics::perVisaType()->where('date', '>=', $thisMonth)
                 ->sum('rejected_count');
 
             $decidedThisMonth = $approvedThisMonth + $rejectedThisMonth;

@@ -184,6 +184,80 @@ class MetricsAggregationTest extends TestCase
         $this->assertEquals(2, $row->rejection_count);
     }
 
+    public function test_aggregate_job_creates_per_officer_row_for_officer_with_decisions(): void
+    {
+        $officer = User::factory()->create();
+        $visaType = VisaType::factory()->create();
+
+        VisaApplication::factory()
+            ->count(2)
+            ->create([
+                'visa_type_id' => $visaType->ulid,
+                'status' => ApplicationStatus::Approved,
+                'assigned_officer_id' => $officer->id,
+                'submitted_at' => now()->subDays(3),
+                'decision_at' => now(),
+                'decision_by' => $officer->id,
+            ]);
+
+        (new AggregateDailyApplicationMetrics(now()->toDateString()))->handle();
+
+        $this->assertDatabaseHas('daily_application_metrics', [
+            'date' => now()->toDateString(),
+            'officer_id' => $officer->id,
+            'visa_type_id' => null,
+            'approved_count' => 2,
+        ]);
+    }
+
+    public function test_aggregate_job_officer_rows_are_idempotent(): void
+    {
+        $officer = User::factory()->create();
+        $visaType = $this->makeVisaType();
+        $formTemplate = FormTemplate::factory()
+            ->for($visaType, 'visaType')
+            ->create();
+
+        VisaApplication::factory()->create([
+            'visa_type_id' => $visaType->ulid,
+            'form_template_id' => $formTemplate->ulid,
+            'status' => ApplicationStatus::Approved,
+            'decision_by' => $officer->id,
+            'submitted_at' => '2026-01-01 10:00:00',
+            'decision_at' => '2026-01-01 15:00:00',
+        ]);
+
+        $date = '2026-01-01';
+
+        (new AggregateDailyApplicationMetrics($date))->handle();
+        (new AggregateDailyApplicationMetrics($date))->handle();
+
+        $this->assertDatabaseCount(
+            'daily_application_metrics',
+            2 // 1 visa-type row + 1 officer row, NOT 3
+        );
+    }
+
+    public function test_aggregate_job_still_creates_per_visa_type_row_with_null_officer(): void
+    {
+        $visaType = VisaType::factory()->create();
+
+        VisaApplication::factory()->create([
+            'visa_type_id' => $visaType->ulid,
+            'status' => ApplicationStatus::Approved,
+            'submitted_at' => now()->subDays(2),
+            'decision_at' => now(),
+        ]);
+
+        (new AggregateDailyApplicationMetrics(now()->toDateString()))->handle();
+
+        $this->assertDatabaseHas('daily_application_metrics', [
+            'date' => now()->toDateString(),
+            'officer_id' => null,
+            'visa_type_id' => $visaType->ulid,
+        ]);
+    }
+
     private function makeVisaType(): VisaType
     {
         $country = Country::create(['name' => 'Test', 'iso2' => 'TE', 'iso3' => 'TST']);
