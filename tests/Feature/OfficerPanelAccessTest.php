@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Identity\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
@@ -66,5 +67,27 @@ class OfficerPanelAccessTest extends TestCase
 
         $this->actingAs($admin)->followingRedirects()->get('/admin')->assertSuccessful();
         $this->actingAs($admin)->followingRedirects()->get('/officer')->assertSuccessful();
+    }
+
+    public function test_suspended_case_officer_cannot_access_officer_panel(): void
+    {
+        $officer = User::factory()->create([
+            'email_verified_at' => now(),
+            'status' => UserStatus::Suspended,
+        ]);
+        $officer->assignRole('case_officer');
+
+        $this->actingAs($officer)->get('/officer')->assertForbidden();
+    }
+
+    public function test_suspended_admin_cannot_access_admin_panel(): void
+    {
+        $admin = User::factory()->create([
+            'email_verified_at' => now(),
+            'status' => UserStatus::Suspended,
+        ]);
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)->get('/admin')->assertForbidden();
     }
 }

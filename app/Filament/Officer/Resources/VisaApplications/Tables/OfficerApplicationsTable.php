@@ -102,9 +102,9 @@ class OfficerApplicationsTable
                     ->label('SLA breached')
                     ->query(fn (Builder $query) => $query->slaBreached()),
 
-                Filter::make('resubmitted')
-                    ->label('Resubmitted')
-                    ->query(fn (Builder $query) => $query->where('status', ApplicationStatus::Resubmitted->value)),
+                Filter::make('additional_info_requested')
+                    ->label('Info Requested')
+                    ->query(fn (Builder $query) => $query->where('status', ApplicationStatus::AdditionalInfoRequested->value)),
 
                 Filter::make('unassigned')
                     ->label('Unassigned')

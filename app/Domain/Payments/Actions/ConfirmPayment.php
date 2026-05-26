@@ -18,6 +18,7 @@ class ConfirmPayment
 {
     public function execute(Payment $payment, ?User $actor): void
     {
+        // Fast path: in-memory model already reflects Succeeded state.
         if ($payment->status === PaymentStatus::Succeeded) {
             return;
         }
@@ -25,15 +26,23 @@ class ConfirmPayment
         $invoiceUlid = null;
 
         DB::transaction(function () use ($payment, $actor, &$invoiceUlid): void {
-            $payment->update([
+            // Re-fetch with a row lock so concurrent calls (e.g. webhook retry + manual
+            // mark-as-paid) cannot both pass the status check simultaneously.
+            $locked = Payment::where('ulid', $payment->ulid)->lockForUpdate()->first();
+
+            if (! $locked || $locked->status === PaymentStatus::Succeeded) {
+                return;
+            }
+
+            $locked->update([
                 'status' => PaymentStatus::Succeeded,
                 'succeeded_at' => now(),
             ]);
 
-            $application = $payment->visaApplication;
+            $application = $locked->visaApplication;
 
             if (! $application) {
-                throw new \RuntimeException("Payment {$payment->ulid} has no associated visa application.");
+                throw new \RuntimeException("Payment {$locked->ulid} has no associated visa application.");
             }
 
             $application->update(['status' => ApplicationStatus::PaymentCompleted]);
@@ -46,12 +55,15 @@ class ConfirmPayment
                 'created_at' => now(),
             ]);
 
-            $invoice = $this->createInvoice($payment);
-
+            $invoice = $this->createInvoice($locked);
             $invoiceUlid = $invoice->ulid;
 
             GenerateReceiptPdf::dispatch($invoiceUlid)->onQueue('pdfs');
         });
+
+        if (! $invoiceUlid) {
+            return;
+        }
 
         $payment->load(['visaApplication.applicantProfile.user', 'invoice']);
 

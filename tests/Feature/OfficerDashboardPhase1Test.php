@@ -21,27 +21,17 @@ class OfficerDashboardPhase1Test extends TestCase
         Role::firstOrCreate(['name' => 'case_officer', 'guard_name' => 'web']);
     }
 
-    public function test_officer_dashboard_renders_sidebar_placeholder(): void
+    public function test_officer_dashboard_renders_successfully(): void
     {
         $officer = User::factory()->create(['email_verified_at' => now()]);
         $officer->assignRole('case_officer');
 
         Livewire::actingAs($officer)
             ->test(Dashboard::class)
-            ->assertSee('Sidebar');
+            ->assertSuccessful();
     }
 
-    public function test_officer_dashboard_renders_main_placeholder(): void
-    {
-        $officer = User::factory()->create(['email_verified_at' => now()]);
-        $officer->assignRole('case_officer');
-
-        Livewire::actingAs($officer)
-            ->test(Dashboard::class)
-            ->assertSee('Main');
-    }
-
-    public function test_officer_dashboard_columns_returns_12_column_grid(): void
+    public function test_officer_dashboard_columns_returns_4_column_grid(): void
     {
         $officer = User::factory()->create(['email_verified_at' => now()]);
         $officer->assignRole('case_officer');
@@ -50,10 +40,10 @@ class OfficerDashboardPhase1Test extends TestCase
             ->test(Dashboard::class)
             ->instance();
 
-        $this->assertEquals(['default' => 1, 'md' => 12], $instance->getColumns());
+        $this->assertEquals(['default' => 1, 'md' => 4], $instance->getColumns());
     }
 
-    public function test_officer_dashboard_widgets_returns_empty_array(): void
+    public function test_officer_dashboard_registers_all_five_widgets(): void
     {
         $officer = User::factory()->create(['email_verified_at' => now()]);
         $officer->assignRole('case_officer');
@@ -62,6 +52,6 @@ class OfficerDashboardPhase1Test extends TestCase
             ->test(Dashboard::class)
             ->instance();
 
-        $this->assertEmpty($instance->getWidgets());
+        $this->assertCount(5, $instance->getWidgets());
     }
 }

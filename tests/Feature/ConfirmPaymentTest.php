@@ -128,4 +128,23 @@ class ConfirmPaymentTest extends TestCase
         Queue::assertNotPushed(GenerateReceiptPdf::class);
         $this->assertEquals(1, Invoice::where('payment_id', $this->payment->ulid)->count());
     }
+
+    public function test_does_not_double_confirm_when_db_already_succeeded(): void
+    {
+        Queue::fake();
+
+        // Update DB directly, bypassing Eloquent events — in-memory model stays stale (Processing)
+        Payment::where('ulid', $this->payment->ulid)->update([
+            'status' => PaymentStatus::Succeeded->value,
+            'succeeded_at' => now(),
+        ]);
+        Invoice::factory()->for($this->payment, 'payment')->create();
+
+        $this->assertEquals(PaymentStatus::Processing, $this->payment->status);
+
+        (new ConfirmPayment)->execute($this->payment, $this->admin);
+
+        Queue::assertNotPushed(GenerateReceiptPdf::class);
+        $this->assertSame(1, Invoice::where('payment_id', $this->payment->ulid)->count());
+    }
 }
