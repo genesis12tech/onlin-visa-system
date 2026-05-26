@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ApplicantProfile extends Model
 {
     /** @use HasFactory<ApplicantProfileFactory> */
-    use HasFactory, HasUlids;
+    use HasFactory, HasUlids, SoftDeletes;
 
     protected static function newFactory(): ApplicantProfileFactory
     {
@@ -39,6 +40,7 @@ class ApplicantProfile extends Model
         'state',
         'postal_code',
         'notification_preferences',
+        'profile_completed_at',
     ];
 
     protected function casts(): array
@@ -49,6 +51,7 @@ class ApplicantProfile extends Model
             'passport_number' => 'encrypted',
             'phone' => 'encrypted',
             'notification_preferences' => 'array',
+            'profile_completed_at' => 'datetime',
         ];
     }
 

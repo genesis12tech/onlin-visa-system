@@ -28,6 +28,7 @@ class CompleteApplicantProfile
                 'city' => $data->city,
                 'state' => $data->state,
                 'postal_code' => $data->postalCode,
+                'profile_completed_at' => now(),
             ]
         );
     }

@@ -7,6 +7,7 @@ use App\Domain\Identity\Data\ApplicantProfileData;
 use App\Domain\Identity\Models\ApplicantProfile;
 use App\Domain\Identity\Models\Country;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -109,5 +110,34 @@ class CompleteApplicantProfileActionTest extends TestCase
             ->value('passport_number');
 
         $this->assertNotEquals('SECRET123', $raw);
+    }
+
+    public function test_sets_profile_completed_at_when_profile_is_completed(): void
+    {
+        $user = User::factory()->create();
+        $country = Country::factory()->create();
+
+        $data = new ApplicantProfileData(
+            firstName: 'Jane',
+            lastName: 'Doe',
+            middleName: null,
+            dateOfBirth: '1990-05-15',
+            gender: 'female',
+            nationalityId: $country->id,
+            countryOfResidenceId: $country->id,
+            passportNumber: 'AB1234567',
+            passportExpiryDate: '2030-01-01',
+            phone: '+44 7911 123456',
+            addressLine1: '10 Downing Street',
+            addressLine2: null,
+            city: 'London',
+            state: null,
+            postalCode: 'SW1A 2AA',
+        );
+
+        $profile = CompleteApplicantProfile::run($user, $data);
+
+        $this->assertNotNull($profile->fresh()->profile_completed_at);
+        $this->assertInstanceOf(Carbon::class, $profile->fresh()->profile_completed_at);
     }
 }
