@@ -131,6 +131,19 @@ class UploadDocumentVersionTest extends TestCase
         (new UploadDocumentVersion)->execute($docSlot, $file, $uploader);
     }
 
+    public function test_storage_path_uses_mime_derived_extension_not_client_extension(): void
+    {
+        [$docSlot, $uploader] = $this->makeDocumentSlot();
+
+        // Client claims the file is a PHP script, but MIME type is application/pdf
+        $file = UploadedFile::fake()->create('malicious.php', 100, 'application/pdf');
+
+        $version = (new UploadDocumentVersion)->execute($docSlot, $file, $uploader);
+
+        $this->assertStringEndsWith('.pdf', $version->storage_path);
+        $this->assertStringNotContainsString('.php', $version->storage_path);
+    }
+
     private function makeDocumentSlot(): array
     {
         $country = Country::create(['name' => 'Test', 'iso2' => 'TE', 'iso3' => 'TST']);

@@ -24,6 +24,11 @@ class DocumentRequirementsRelationManager extends RelationManager
 
     protected static ?string $title = 'Required Documents';
 
+    protected function canDeleteAny(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
     public function form(Schema $schema): Schema
     {
         return $schema

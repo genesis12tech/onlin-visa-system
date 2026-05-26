@@ -29,6 +29,11 @@ class ServiceLocationResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function canDeleteAny(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return ServiceLocationForm::configure($schema);

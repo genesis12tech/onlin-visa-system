@@ -25,13 +25,12 @@ class UploadDocumentVersion
     ): DocumentVersion {
         $this->validateFile($file, $document->documentType);
 
-        $contents = file_get_contents($file->getRealPath());
-        $sha256 = hash('sha256', $contents);
+        $sha256 = hash_file('sha256', $file->getRealPath());
 
-        $ext = strtolower($file->getClientOriginalExtension() ?: 'bin');
+        $ext = $this->extensionFromMime($file->getMimeType() ?? '');
         $storagePath = 'documents/'.Str::ulid().'.'.$ext;
 
-        Storage::disk('documents')->put($storagePath, $contents);
+        Storage::disk('documents')->put($storagePath, file_get_contents($file->getRealPath()));
 
         try {
             $version = DB::transaction(function () use ($document, $file, $uploader, $sha256, $storagePath) {
@@ -72,6 +71,21 @@ class UploadDocumentVersion
         ScanDocumentVersionJob::dispatch($version->ulid)->onQueue('documents');
 
         return $version;
+    }
+
+    private function extensionFromMime(string $mimeType): string
+    {
+        return match ($mimeType) {
+            'application/pdf' => 'pdf',
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            'application/msword' => 'doc',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+            default => 'bin',
+        };
     }
 
     private function validateFile(UploadedFile $file, DocumentType $documentType): void
