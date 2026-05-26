@@ -29,7 +29,7 @@ class ApplicationAnswer extends Model
     protected function casts(): array
     {
         return [
-            'value' => 'json',
+            'value' => 'encrypted',
         ];
     }
 

@@ -110,7 +110,9 @@ class OfficerDocumentsRelationManager extends RelationManager
                     ->color('success')
                     ->requiresConfirmation()
                     ->action(fn (ApplicationDocument $record) => (new AcceptDocument)->execute($record, auth()->user()))
-                    ->visible(fn (ApplicationDocument $record): bool => in_array($record->status, [DocumentStatus::Uploaded, DocumentStatus::UnderReview]))
+                    ->visible(fn (ApplicationDocument $record): bool => in_array($record->status, [DocumentStatus::Uploaded, DocumentStatus::UnderReview])
+                        && $record->currentVersion?->scan_status === ScanStatus::Clean
+                    )
                     ->authorize(fn (ApplicationDocument $record): bool => auth()->user()?->can('accept', $record) ?? false),
 
                 Action::make('reject')

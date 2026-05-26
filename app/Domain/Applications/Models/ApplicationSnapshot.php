@@ -23,7 +23,7 @@ class ApplicationSnapshot extends Model
     protected function casts(): array
     {
         return [
-            'snapshot_data' => 'array',
+            'snapshot_data' => 'encrypted:array',
             'created_at' => 'datetime',
         ];
     }

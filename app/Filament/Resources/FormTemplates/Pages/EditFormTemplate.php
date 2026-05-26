@@ -37,6 +37,7 @@ class EditFormTemplate extends EditRecord
                 }),
 
             DeleteAction::make()
+                ->authorize(fn (): bool => auth()->user()?->hasAnyRole(['super_admin', 'admin']) ?? false)
                 ->visible(fn (): bool => $this->record->published_at === null),
         ];
     }
