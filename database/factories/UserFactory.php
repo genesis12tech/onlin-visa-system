@@ -45,4 +45,12 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * Assign an officer ID to this user.
+     */
+    public function asOfficer(string $officerId): static
+    {
+        return $this->state(fn () => ['officer_id' => $officerId]);
+    }
 }

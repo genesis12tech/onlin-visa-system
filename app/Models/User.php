@@ -44,6 +44,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'two_factor_enabled',
         'status',
         'ulid',
+        'officer_id',
+        'last_login_at',
     ];
 
     /**
@@ -65,6 +67,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_enabled' => 'boolean',
             'status' => UserStatus::class,
