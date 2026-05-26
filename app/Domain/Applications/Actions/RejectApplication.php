@@ -21,6 +21,10 @@ class RejectApplication
         ?string $explanationForApplicant = null,
         ?string $internalNotes = null,
     ): VisaApplication {
+        if (in_array($application->status, [ApplicationStatus::Approved, ApplicationStatus::Rejected], strict: true)) {
+            throw new \RuntimeException('Application has already been decided and cannot be rejected again.');
+        }
+
         $storedReason = $rejectionReason?->value ?? $reason;
         $fromStatus = $application->status->value;
 

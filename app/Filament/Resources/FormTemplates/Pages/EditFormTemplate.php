@@ -24,6 +24,7 @@ class EditFormTemplate extends EditRecord
                 ->requiresConfirmation()
                 ->modalHeading('Publish Form Template')
                 ->modalDescription('Publishing is irreversible. The schema becomes immutable and the previous active version for this visa type will be archived.')
+                ->authorize(fn (): bool => auth()->user()?->hasAnyRole(['super_admin', 'admin']) ?? false)
                 ->visible(fn (): bool => $this->record->published_at === null)
                 ->action(function (): void {
                     try {

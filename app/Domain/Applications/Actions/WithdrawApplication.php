@@ -39,6 +39,12 @@ class WithdrawApplication
                 'actor_id' => $actor->id,
                 'created_at' => now(),
             ]);
+
+            activity()
+                ->causedBy($actor)
+                ->performedOn($application)
+                ->withProperties(['from' => $fromStatus, 'to' => ApplicationStatus::Withdrawn->value])
+                ->log('status_changed');
         });
     }
 }

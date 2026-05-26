@@ -60,6 +60,7 @@ class OfficerNotesRelationManager extends RelationManager
             ->filters([])
             ->headerActions([
                 CreateAction::make()
+                    ->authorize(fn (): bool => auth()->user()?->hasAnyRole(['super_admin', 'admin', 'senior_officer', 'case_officer']) ?? false)
                     ->using(function (array $data): ApplicationNote {
                         return (new AddReviewNote)->execute(
                             $this->getOwnerRecord(),

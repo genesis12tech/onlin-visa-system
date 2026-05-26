@@ -32,6 +32,12 @@ class AssignApplicationToOfficer
                 'created_at' => now(),
             ]);
 
+            activity()
+                ->causedBy($actor)
+                ->performedOn($application)
+                ->withProperties(['from' => $fromStatus, 'to' => $toStatus, 'officer_id' => $officer->id])
+                ->log('status_changed');
+
             return $application->fresh();
         });
     }

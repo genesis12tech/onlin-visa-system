@@ -131,17 +131,29 @@ class UploadDocumentVersionTest extends TestCase
         (new UploadDocumentVersion)->execute($docSlot, $file, $uploader);
     }
 
+    public function test_upload_fails_if_client_extension_does_not_match_accepted_mime_types(): void
+    {
+        [$docSlot, $uploader] = $this->makeDocumentSlot();
+
+        // Mismatched extension: MIME is accepted (application/pdf) but extension .php is not
+        $file = UploadedFile::fake()->create('malicious.php', 100, 'application/pdf');
+
+        $this->expectException(ValidationException::class);
+
+        (new UploadDocumentVersion)->execute($docSlot, $file, $uploader);
+    }
+
     public function test_storage_path_uses_mime_derived_extension_not_client_extension(): void
     {
         [$docSlot, $uploader] = $this->makeDocumentSlot();
 
-        // Client claims the file is a PHP script, but MIME type is application/pdf
-        $file = UploadedFile::fake()->create('malicious.php', 100, 'application/pdf');
+        // Client supplies a mixed-case .PDF extension; storage must use lowercase MIME-derived ext
+        $file = UploadedFile::fake()->create('document.PDF', 100, 'application/pdf');
 
         $version = (new UploadDocumentVersion)->execute($docSlot, $file, $uploader);
 
         $this->assertStringEndsWith('.pdf', $version->storage_path);
-        $this->assertStringNotContainsString('.php', $version->storage_path);
+        $this->assertStringNotContainsString('.PDF', $version->storage_path);
     }
 
     private function makeDocumentSlot(): array

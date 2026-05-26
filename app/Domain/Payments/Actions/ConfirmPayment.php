@@ -45,11 +45,13 @@ class ConfirmPayment
                 throw new \RuntimeException("Payment {$locked->ulid} has no associated visa application.");
             }
 
+            $fromStatus = $application->status->value;
+
             $application->update(['status' => ApplicationStatus::PaymentCompleted]);
 
             ApplicationStatusHistory::create([
                 'visa_application_id' => $application->ulid,
-                'from_status' => ApplicationStatus::PaymentPending->value,
+                'from_status' => $fromStatus,
                 'to_status' => ApplicationStatus::PaymentCompleted->value,
                 'actor_id' => $actor?->id,
                 'created_at' => now(),

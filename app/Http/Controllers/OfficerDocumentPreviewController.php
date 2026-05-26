@@ -8,6 +8,8 @@ use App\Support\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OfficerDocumentPreviewController extends Controller
@@ -28,10 +30,16 @@ class OfficerDocumentPreviewController extends Controller
             'storage_path' => $version->storage_path,
         ], auth()->id());
 
+        $contentDisposition = HeaderUtils::makeDisposition(
+            HeaderUtils::DISPOSITION_INLINE,
+            $version->original_filename,
+            Str::ascii($version->original_filename) ?: 'document',
+        );
+
         return Storage::disk('documents')->response(
             $version->storage_path,
             $version->original_filename,
-            ['Content-Disposition' => 'inline; filename="'.$version->original_filename.'"'],
+            ['Content-Disposition' => $contentDisposition],
         );
     }
 }

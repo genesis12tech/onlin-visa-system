@@ -50,6 +50,7 @@ class AppointmentsTable
                     ->label('Completed')
                     ->color('success')
                     ->icon('heroicon-o-check')
+                    ->authorize(fn (): bool => auth()->user()?->hasAnyRole(['super_admin', 'admin', 'senior_officer', 'case_officer']) ?? false)
                     ->visible(fn (ApplicationAppointment $record): bool => $record->status === AppointmentStatus::Scheduled)
                     ->requiresConfirmation()
                     ->action(fn (ApplicationAppointment $record) => $record->update(['status' => AppointmentStatus::Completed])),
@@ -58,6 +59,7 @@ class AppointmentsTable
                     ->label('Missed')
                     ->color('danger')
                     ->icon('heroicon-o-x-circle')
+                    ->authorize(fn (): bool => auth()->user()?->hasAnyRole(['super_admin', 'admin', 'senior_officer', 'case_officer']) ?? false)
                     ->visible(fn (ApplicationAppointment $record): bool => $record->status === AppointmentStatus::Scheduled)
                     ->requiresConfirmation()
                     ->action(fn (ApplicationAppointment $record) => $record->update(['status' => AppointmentStatus::Missed])),
@@ -66,6 +68,7 @@ class AppointmentsTable
                     ->label('Cancelled')
                     ->color('gray')
                     ->icon('heroicon-o-x-mark')
+                    ->authorize(fn (): bool => auth()->user()?->hasAnyRole(['super_admin', 'admin', 'senior_officer', 'case_officer']) ?? false)
                     ->visible(fn (ApplicationAppointment $record): bool => $record->status === AppointmentStatus::Scheduled)
                     ->requiresConfirmation()
                     ->action(fn (ApplicationAppointment $record) => $record->update(['status' => AppointmentStatus::Cancelled])),

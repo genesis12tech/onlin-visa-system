@@ -88,6 +88,17 @@ class UploadDocumentVersion
         };
     }
 
+    private const MIME_TO_EXTENSIONS = [
+        'application/pdf' => ['pdf'],
+        'image/jpeg' => ['jpg', 'jpeg'],
+        'image/png' => ['png'],
+        'image/gif' => ['gif'],
+        'image/webp' => ['webp'],
+        'application/msword' => ['doc'],
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => ['docx'],
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => ['xlsx'],
+    ];
+
     private function validateFile(UploadedFile $file, DocumentType $documentType): void
     {
         $mimeType = $file->getMimeType();
@@ -95,6 +106,18 @@ class UploadDocumentVersion
         if (! in_array($mimeType, $documentType->accepted_mime_types)) {
             throw ValidationException::withMessages([
                 'file' => ['File type not accepted. Accepted: '.implode(', ', $documentType->accepted_mime_types)],
+            ]);
+        }
+
+        $allowedExtensions = collect($documentType->accepted_mime_types)
+            ->flatMap(fn (string $mime) => self::MIME_TO_EXTENSIONS[$mime] ?? [])
+            ->all();
+
+        $ext = strtolower($file->getClientOriginalExtension());
+
+        if ($allowedExtensions && ! in_array($ext, $allowedExtensions, strict: true)) {
+            throw ValidationException::withMessages([
+                'file' => ['File extension not accepted. Allowed: '.implode(', ', array_unique($allowedExtensions))],
             ]);
         }
 

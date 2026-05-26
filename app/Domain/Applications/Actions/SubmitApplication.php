@@ -17,11 +17,16 @@ class SubmitApplication
     public function execute(VisaApplication $application, User $actor): VisaApplication
     {
         DB::transaction(function () use ($application, $actor) {
-            if ($application->status !== ApplicationStatus::Draft) {
-                throw new \RuntimeException("Application is not in a submittable state: {$application->status->value}");
+            // Lock the row so concurrent submission attempts serialize rather than both
+            // passing the Draft status check on a stale in-memory value.
+            $locked = VisaApplication::where('ulid', $application->ulid)->lockForUpdate()->first();
+
+            if (! $locked || $locked->status !== ApplicationStatus::Draft) {
+                $currentStatus = $locked?->status->value ?? 'unknown';
+                throw new \RuntimeException("Application is not in a submittable state: {$currentStatus}");
             }
 
-            $blockingDocExists = $application->documents()
+            $blockingDocExists = $locked->documents()
                 ->whereIn('status', [
                     DocumentStatus::Pending->value,
                     DocumentStatus::Rejected->value,
@@ -33,15 +38,15 @@ class SubmitApplication
                 throw new \RuntimeException('All required documents must be uploaded before submission.');
             }
 
-            $fromStatus = $application->status->value;
+            $fromStatus = $locked->status->value;
 
-            $application->update([
+            $locked->update([
                 'status' => ApplicationStatus::Submitted,
                 'submitted_at' => now(),
             ]);
 
             ApplicationStatusHistory::create([
-                'visa_application_id' => $application->ulid,
+                'visa_application_id' => $locked->ulid,
                 'from_status' => $fromStatus,
                 'to_status' => ApplicationStatus::Submitted->value,
                 'actor_id' => $actor->id,
@@ -49,13 +54,13 @@ class SubmitApplication
             ]);
 
             ApplicationSnapshot::firstOrCreate(
-                ['visa_application_id' => $application->ulid],
+                ['visa_application_id' => $locked->ulid],
                 [
                     'snapshot_data' => [
-                        'tracking_number' => $application->tracking_number,
-                        'visa_type' => $application->visaType?->toArray(),
-                        'form_template_id' => $application->form_template_id,
-                        'answers' => $application->answers()->get(['field_key', 'value'])->toArray(),
+                        'tracking_number' => $locked->tracking_number,
+                        'visa_type' => $locked->visaType?->toArray(),
+                        'form_template_id' => $locked->form_template_id,
+                        'answers' => $locked->answers()->get(['field_key', 'value'])->toArray(),
                         'submitted_at' => now()->toISOString(),
                     ],
                     'created_at' => now(),

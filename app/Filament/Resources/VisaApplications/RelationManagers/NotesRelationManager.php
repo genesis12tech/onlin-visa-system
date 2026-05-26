@@ -58,6 +58,7 @@ class NotesRelationManager extends RelationManager
             ->filters([])
             ->headerActions([
                 CreateAction::make()
+                    ->authorize(fn (): bool => auth()->user()?->hasAnyRole(['super_admin', 'admin', 'senior_officer', 'case_officer']) ?? false)
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['author_id'] = auth()->id();
 
@@ -65,7 +66,8 @@ class NotesRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->authorize(fn (): bool => auth()->user()?->hasAnyRole(['super_admin', 'admin']) ?? false),
             ])
             ->toolbarActions([]);
     }

@@ -9,8 +9,10 @@ use App\Domain\Applications\Models\VisaType;
 use App\Domain\Documents\Actions\AcceptDocument;
 use App\Domain\Documents\Actions\RejectDocument;
 use App\Domain\Documents\Enums\DocumentStatus;
+use App\Domain\Documents\Enums\ScanStatus;
 use App\Domain\Documents\Models\ApplicationDocument;
 use App\Domain\Documents\Models\DocumentType;
+use App\Domain\Documents\Models\DocumentVersion;
 use App\Domain\Identity\Models\ApplicantProfile;
 use App\Domain\Identity\Models\Country;
 use App\Models\User;
@@ -77,7 +79,27 @@ class AcceptRejectDocumentActionTest extends TestCase
         ]);
     }
 
-    private function makeUploadedDocument(): array
+    public function test_accept_throws_if_document_has_no_clean_version(): void
+    {
+        [$docSlot, $officer] = $this->makeUploadedDocument(scanStatus: ScanStatus::Pending);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('virus scan');
+
+        (new AcceptDocument)->execute($docSlot, $officer);
+    }
+
+    public function test_accept_throws_if_document_version_is_infected(): void
+    {
+        [$docSlot, $officer] = $this->makeUploadedDocument(scanStatus: ScanStatus::Infected);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('virus scan');
+
+        (new AcceptDocument)->execute($docSlot, $officer);
+    }
+
+    private function makeUploadedDocument(ScanStatus $scanStatus = ScanStatus::Clean): array
     {
         $country = Country::create(['name' => 'Test', 'iso2' => 'TE', 'iso3' => 'TST']);
         $visaType = VisaType::create([
@@ -109,6 +131,20 @@ class AcceptRejectDocumentActionTest extends TestCase
             'status' => DocumentStatus::Uploaded,
         ]);
         $officer = User::factory()->create();
+
+        $version = DocumentVersion::create([
+            'application_document_id' => $docSlot->ulid,
+            'storage_path' => 'documents/test.pdf',
+            'original_filename' => 'passport.pdf',
+            'mime_type' => 'application/pdf',
+            'file_size_bytes' => 1024,
+            'sha256_checksum' => hash('sha256', 'content'),
+            'scan_status' => $scanStatus,
+            'uploaded_by' => $officer->id,
+            'created_at' => now(),
+        ]);
+        $docSlot->update(['current_version_id' => $version->ulid]);
+        $docSlot->setRelation('currentVersion', $version);
 
         return [$docSlot, $officer];
     }
