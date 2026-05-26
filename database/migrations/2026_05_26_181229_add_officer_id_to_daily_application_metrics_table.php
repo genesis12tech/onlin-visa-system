@@ -9,17 +9,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('daily_application_metrics', function (Blueprint $table) {
-            // Drop old unique index before altering columns
             $table->dropUnique(['date', 'visa_type_id']);
+            $table->dropForeign(['visa_type_id']);
 
-            // Make visa_type_id nullable
             $table->string('visa_type_id', 26)->nullable()->change();
 
-            // Add officer_id FK after date
+            $table->foreign('visa_type_id')->references('ulid')->on('visa_types')->nullOnDelete();
+
             $table->foreignId('officer_id')->nullable()->after('date')
                 ->constrained('users')->nullOnDelete();
 
-            // New composite unique index
             $table->unique(['date', 'officer_id', 'visa_type_id']);
         });
     }
@@ -29,7 +28,9 @@ return new class extends Migration
         Schema::table('daily_application_metrics', function (Blueprint $table) {
             $table->dropUnique(['date', 'officer_id', 'visa_type_id']);
             $table->dropConstrainedForeignId('officer_id');
+            $table->dropForeign(['visa_type_id']);
             $table->string('visa_type_id', 26)->nullable(false)->change();
+            $table->foreign('visa_type_id')->references('ulid')->on('visa_types')->cascadeOnDelete();
             $table->unique(['date', 'visa_type_id']);
         });
     }
