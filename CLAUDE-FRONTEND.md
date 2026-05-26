@@ -23,6 +23,25 @@ Always check which surface you are building for before starting.
 
 ---
 
+
+## Screenshots
+
+Refer to the screenshots below as a base for the dashboard UI.
+It does not have to be exact. Use it as a reference:
+
+@docs/screenshots/applicant-dashboard-ui/dashboard-main.jpg
+@docs/screenshots/applicant-dashboard-ui/complete-payment-drawer.jpg
+@docs/screenshots/applicant-dashboard-ui/documents-ui.jpg
+@docs/screenshots/applicant-dashboard-ui/my-applicantions-ui.jpg
+@docs/screenshots/applicant-dashboard-ui/my-profile-ui.jpg
+@docs/screenshots/applicant-dashboard-ui/new-application-ui.jpg
+@docs/screenshots/applicant-dashboard-ui/notifications-ui.jpg
+@docs/screenshots/applicant-dashboard-ui/payments-ui.jpg
+@docs/screenshots/applicant-dashboard-ui/tourist-visa-drawer.jpg
+@docs/screenshots/applicant-dashboard-ui/track-status-ui.jpg
+
+---
+
 ## 1. Stack (locked — do not substitute)
 
 | Layer | Choice | Notes |

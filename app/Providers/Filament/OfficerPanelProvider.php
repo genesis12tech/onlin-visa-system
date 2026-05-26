@@ -6,6 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -29,6 +30,12 @@ class OfficerPanelProvider extends PanelProvider
             ->brandName('VisaOfficer')
             ->colors([
                 'primary' => Color::Teal,
+            ])
+            ->sidebarCollapsibleOnDesktop()
+            ->navigationGroups([
+                NavigationGroup::make('Workspace')->label('WORKSPACE'),
+                NavigationGroup::make('Tools')->label('TOOLS'),
+                NavigationGroup::make('Reporting')->label('REPORTING'),
             ])
             ->discoverResources(in: app_path('Filament/Officer/Resources'), for: 'App\Filament\Officer\Resources')
             ->discoverPages(in: app_path('Filament/Officer/Pages'), for: 'App\Filament\Officer\Pages')

@@ -30,6 +30,23 @@ applicant portal.
 
 ---
 
+## Screenshots
+
+Refer to the screenshots below as a base for the dashboard UI. 
+It does not have to be exact. Use it as a reference:
+
+@docs/screenshots/officer-dashboard-ui/dashboard-main.jpg
+@docs/screenshots/officer-dashboard-ui/applicant-details-drawer.jpg
+@docs/screenshots/officer-dashboard-ui/all-applications-ui.jpg
+@docs/screenshots/officer-dashboard-ui/document-review-ui.jpg
+@docs/screenshots/officer-dashboard-ui/my-assigned-ui.jpg
+@docs/screenshots/officer-dashboard-ui/my-performance-ui.jpg
+@docs/screenshots/officer-dashboard-ui/reports-ui.jpg
+@docs/screenshots/officer-dashboard-ui/review-queue-ui.jpg
+@docs/screenshots/officer-dashboard-ui/search-ui.jpg
+
+---
+
 ## Who uses it
 
 | Role              | What they can do                                                   |

@@ -29,6 +29,9 @@ Read the following to get the full features of the project:
 -@features/payments.md
 -@features/officer-review.md
 -@features/reporting.md
+-@features/dashboard-phase-1-spec.md
+-@features/dashboard-phase-2-spec.md
+-@features/dashboard-phase-3-spec.md
 
 ## Milestone Checklist
 
@@ -40,6 +43,9 @@ Read the following to get the full features of the project:
 - ☑ M5 — Officer panel (queue, review, approve/reject, SLA, notes)
 - ☑ M6 — Email templates & PDF generation (decision letters, appointment letters)
 - ☑ M7 — Reporting (metrics aggregation, exports, dashboards)
+- ☑ M8 — Dashboard Phase 1 (Officer panel registration, dark-mode theme, custom Dashboard page, placeholder layout)
+- ☑ M9 — Dashboard Phase 2 (Collapsible sidebar, navigation groups, placeholder pages, mock data service)
+- ☑ M10 — Dashboard Phase 3 (Greeting header, stat cards, priority queue table, team workload, activity feed widgets)
 
 ## Commands
 

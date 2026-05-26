@@ -19,11 +19,11 @@ class OfficerPerformance extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
 
-    protected static string|UnitEnum|null $navigationGroup = null;
+    protected static string|UnitEnum|null $navigationGroup = 'Reporting';
 
     protected static ?string $navigationLabel = 'My Performance';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 1;
 
     protected string $view = 'filament.officer.pages.officer-performance';
 
